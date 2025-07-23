@@ -5,23 +5,27 @@ A modern, intuitive cabin booking management system built with Laravel and React
 ## ✨ Features
 
 ### 🗓️ Advanced Calendar System
+
 - **Dual Calendar Views**: Dashboard mini-calendar and full-year calendar
 - **Half-Day Visualization**: Visual representation of arrival/departure days
 - **Smart Click Detection**: Intelligent position-based booking creation
 - **Real-time Availability**: Instant visual feedback on booking status
 
 ### 👥 Role-Based Access Control
+
 - **Admin Users**: Full access to all bookings and management features
 - **Guest Users**: Can create, view, and manage their own bookings only
 - **Flexible Permissions**: Granular control over booking operations
 
 ### 📅 Booking Management
+
 - **Easy Booking Creation**: Click on free calendar slots to create bookings
 - **Booking Details**: Comprehensive view of all booking information
 - **Overlap Prevention**: Smart validation to prevent booking conflicts
 - **Status Management**: Pending, confirmed, and cancelled booking states
 
 ### 🎨 Modern UI/UX
+
 - **Responsive Design**: Works perfectly on desktop and mobile
 - **shadcn/ui Components**: Beautiful, accessible UI components
 - **German Localization**: Full German language support
@@ -30,6 +34,7 @@ A modern, intuitive cabin booking management system built with Laravel and React
 ## 🚀 Technology Stack
 
 ### Backend
+
 - **Laravel 11**: Modern PHP framework
 - **MySQL/SQLite**: Database management
 - **Inertia.js**: SPA experience without API complexity
@@ -37,6 +42,7 @@ A modern, intuitive cabin booking management system built with Laravel and React
 - **Form Requests**: Comprehensive validation with German messages
 
 ### Frontend
+
 - **React 19**: Latest React with function components
 - **TypeScript**: Type-safe development
 - **Tailwind CSS**: Utility-first styling
@@ -46,6 +52,7 @@ A modern, intuitive cabin booking management system built with Laravel and React
 ## 📦 Installation
 
 ### Prerequisites
+
 - PHP 8.2+
 - Node.js 18+
 - Composer
@@ -54,54 +61,62 @@ A modern, intuitive cabin booking management system built with Laravel and React
 ### Setup Steps
 
 1. **Clone the repository**
-   ```bash
-   git clone https://github.com/itsjustvita/booking-calendar.git
-   cd huettenapp
-   ```
+
+    ```bash
+    git clone https://github.com/itsjustvita/booking-calendar.git
+    cd huettenapp
+    ```
 
 2. **Install PHP dependencies**
-   ```bash
-   composer install
-   ```
+
+    ```bash
+    composer install
+    ```
 
 3. **Install Node.js dependencies**
-   ```bash
-   npm install
-   ```
+
+    ```bash
+    npm install
+    ```
 
 4. **Environment setup**
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
+
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
 
 5. **Database setup**
-   ```bash
-   # Configure your database in .env file
-   php artisan migrate
-   php artisan db:seed
-   ```
+
+    ```bash
+    # Configure your database in .env file
+    php artisan migrate
+    php artisan db:seed
+    ```
 
 6. **Build frontend assets**
-   ```bash
-   npm run build
-   ```
+
+    ```bash
+    npm run build
+    ```
 
 7. **Start development server**
-   ```bash
-   php artisan serve
-   ```
+    ```bash
+    php artisan serve
+    ```
 
 ## 👤 Default Users
 
 After seeding, you can login with:
 
 ### Admin User
+
 - **Email**: admin@huettenapp.com
 - **Password**: password
 - **Role**: Admin (can manage all bookings)
 
 ### Guest Users
+
 - **Email**: guest1@huettenapp.com, guest2@huettenapp.com, etc.
 - **Password**: password
 - **Role**: Guest (can manage own bookings only)
@@ -109,17 +124,20 @@ After seeding, you can login with:
 ## 🎯 Usage
 
 ### Creating Bookings
+
 1. Navigate to Dashboard or Year Calendar
 2. Click on any free calendar day (left half = morning arrival, right half = afternoon)
 3. Fill out the booking form with details
 4. Submit to create the booking
 
 ### Viewing Bookings
+
 1. Click on any booked day (blue colored)
 2. View comprehensive booking details
 3. Edit or delete (if you have permissions)
 
 ### Managing Bookings
+
 - **Admins**: Can edit/delete any booking
 - **Guests**: Can only edit/delete their own bookings
 - **Visual Status**: See booking status through color coding
@@ -127,12 +145,14 @@ After seeding, you can login with:
 ## 🎨 Calendar Features
 
 ### Half-Day Visualization
+
 - **Arrival Days**: Left half free (green/transparent), right half booked (blue)
 - **Departure Days**: Left half booked (blue), right half free (green/transparent)
 - **Full Days**: Completely booked (blue)
 - **Free Days**: Completely free (transparent)
 
 ### Smart Interactions
+
 - **Position-Based Clicks**: Left click = morning, right click = afternoon
 - **Hover Tooltips**: Instant information about availability
 - **Seamless UX**: No dead zones, entire day is clickable
@@ -201,4 +221,4 @@ For support, email [support@huettenapp.com](mailto:support@huettenapp.com) or cr
 
 ---
 
-**Built with ❤️ for cabin booking management** 
+**Built with ❤️ for cabin booking management**
