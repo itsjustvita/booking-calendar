@@ -5,38 +5,153 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    /**
-     * Display the dashboard with calendar and statistics
-     */
     public function index(Request $request): Response
     {
-        $year = $request->get('year', Carbon::now()->year);
-        $month = $request->get('month', Carbon::now()->month);
-        
-        $selectedDate = Carbon::createFromDate($year, $month, 1);
-        $monthStart = $selectedDate->copy()->startOfMonth();
-        $monthEnd = $selectedDate->copy()->endOfMonth();
+        $year = $request->get('year', now()->year);
+        $month = $request->get('month', now()->month);
 
-        // Get bookings for the current month with user information
+        $date = Carbon::createFromDate($year, $month, 1);
+        $startOfMonth = $date->copy()->startOfMonth();
+        $endOfMonth = $date->copy()->endOfMonth();
+
+        // Debug
+        \Log::info('Dashboard: Current date params', [
+            'year' => $year,
+            'month' => $month,
+            'startOfMonth' => $startOfMonth->format('Y-m-d'),
+            'endOfMonth' => $endOfMonth->format('Y-m-d')
+        ]);
+
+        // Get bookings for the month
         $bookings = Booking::with('user')
-            ->whereBetween('start_datum', [$monthStart, $monthEnd])
-            ->orWhere(function ($query) use ($monthStart, $monthEnd) {
-                $query->where('start_datum', '<', $monthStart)
-                      ->where('end_datum', '>=', $monthStart);
+            ->whereBetween('start_datum', [$startOfMonth, $endOfMonth])
+            ->orWhereBetween('end_datum', [$startOfMonth, $endOfMonth])
+            ->orWhere(function ($query) use ($startOfMonth, $endOfMonth) {
+                $query->where('start_datum', '<=', $startOfMonth)
+                      ->where('end_datum', '>=', $endOfMonth);
             })
-            ->orWhere(function ($query) use ($monthStart, $monthEnd) {
-                $query->where('start_datum', '<=', $monthEnd)
-                      ->where('end_datum', '>', $monthEnd);
-            })
-            ->confirmed()
-            ->orderBy('start_datum')
-            ->get()
-            ->map(function ($booking) {
+            ->get();
+
+        // Debug
+        \Log::info('Dashboard: Found bookings', [
+            'count' => $bookings->count(),
+            'bookings' => $bookings->pluck('titel', 'id')->toArray()
+        ]);
+
+        // Get statistics
+        $totalBookings = Booking::whereYear('start_datum', $year)
+            ->whereMonth('start_datum', $month)
+            ->count();
+
+        $totalGuests = Booking::whereYear('start_datum', $year)
+            ->whereMonth('start_datum', $month)
+            ->sum('gast_anzahl');
+
+        $upcomingBookings = Booking::where('start_datum', '>=', now())
+            ->where('start_datum', '<=', now()->addDays(30))
+            ->count();
+
+        // Create calendar days
+        $calendarDays = $this->generateCalendarDays($startOfMonth, $endOfMonth, $bookings);
+
+        // Debug
+        $daysWithBookings = collect($calendarDays)->filter(function($day) {
+            return $day['hasBookings'];
+        });
+        \Log::info('Dashboard: Calendar days with bookings', [
+            'count' => $daysWithBookings->count(),
+            'days' => $daysWithBookings->pluck('date')->toArray()
+        ]);
+
+        // Wetterstandort aus Cache abrufen
+        $weatherLocation = Cache::get('weather_location', [
+            'city' => 'Doren',
+            'country' => 'Österreich',
+            'coordinates' => [
+                'lat' => 47.4500,
+                'lon' => 9.8833
+            ]
+        ]);
+
+        return Inertia::render('dashboard', [
+            'dashboardData' => [
+                'currentMonth' => $date->locale('de')->format('F Y'),
+                'currentYear' => $year,
+                'calendarData' => [
+                    'days' => $calendarDays,
+                    'weekdays' => ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+                ],
+                'statistics' => [
+                    'totalBookings' => $totalBookings,
+                    'totalGuests' => $totalGuests,
+                    'upcomingBookings' => $upcomingBookings,
+                    'monthlyRevenue' => 0, // TODO: Calculate when pricing is implemented
+                ],
+            ],
+            'weatherLocation' => $weatherLocation,
+        ]);
+    }
+
+    private function generateCalendarDays($startOfMonth, $endOfMonth, $bookings)
+    {
+        $days = [];
+        $current = $startOfMonth->copy();
+
+        // Add days from previous month to fill the week
+        $startOfCalendar = $current->copy()->startOfWeek(Carbon::MONDAY);
+        $endOfCalendar = $endOfMonth->copy()->endOfWeek(Carbon::SUNDAY);
+
+        $currentDay = $startOfCalendar->copy();
+
+        while ($currentDay <= $endOfCalendar) {
+            $dayBookings = $bookings->filter(function ($booking) use ($currentDay) {
+                $arrivalDate = Carbon::parse($booking->start_datum);
+                $departureDate = Carbon::parse($booking->end_datum);
+
+                return $currentDay->between($arrivalDate, $departureDate) ||
+                       $currentDay->isSameDay($arrivalDate) ||
+                       $currentDay->isSameDay($departureDate);
+            });
+
+            $isArrivalDay = $bookings->contains(function ($booking) use ($currentDay) {
+                return Carbon::parse($booking->start_datum)->isSameDay($currentDay);
+            });
+
+            $isDepartureDay = $bookings->contains(function ($booking) use ($currentDay) {
+                return Carbon::parse($booking->end_datum)->isSameDay($currentDay);
+            });
+
+            $leftHalf = 'free';
+            $rightHalf = 'free';
+
+            if ($dayBookings->isNotEmpty()) {
+                if ($isArrivalDay && $isDepartureDay) {
+                    // Same day arrival and departure
+                    $leftHalf = 'free';
+                    $rightHalf = 'free';
+                } elseif ($isArrivalDay) {
+                    // Arrival day: morning free, afternoon/evening booked
+                    $leftHalf = 'free';
+                    $rightHalf = 'booked';
+                } elseif ($isDepartureDay) {
+                    // Departure day: morning booked, afternoon/evening free
+                    $leftHalf = 'booked';
+                    $rightHalf = 'free';
+                } else {
+                    // Fully booked day
+                    $leftHalf = 'booked';
+                    $rightHalf = 'booked';
+                }
+            }
+
+            // Convert bookings to array with necessary data
+            $bookingsArray = $dayBookings->map(function ($booking) {
                 return [
                     'id' => $booking->id,
                     'titel' => $booking->titel,
@@ -46,113 +161,26 @@ class DashboardController extends Controller
                     'gast_anzahl' => $booking->gast_anzahl,
                     'status' => $booking->status->value,
                     'status_name' => $booking->status_name,
-                    'duration' => $booking->duration,
-                    'date_range' => $booking->date_range,
                     'user' => [
                         'id' => $booking->user->id,
                         'name' => $booking->user->name,
                         'email' => $booking->user->email,
                     ],
-                    // Berechtigungen: Admin kann alles, Gäste nur ihre eigenen Buchungen
-                    'can_edit' => auth()->user()->role === 'admin' || $booking->user_id === auth()->id(),
-                    'can_delete' => auth()->user()->role === 'admin' || $booking->user_id === auth()->id(),
                 ];
-            });
+            })->toArray();
 
-        // Generate calendar data
-        $calendarData = $this->generateCalendarData($monthStart, $monthEnd, $bookings);
-
-        // Calculate statistics
-        $totalBookings = $bookings->count();
-        $totalGuests = $bookings->sum('gast_anzahl');
-        $upcomingBookings = $bookings->filter(function ($booking) {
-            return Carbon::parse($booking['start_datum'])->isFuture();
-        })->count();
-
-        $dashboardData = [
-            'currentMonth' => $selectedDate->locale('de')->monthName . ' ' . $year,
-            'currentYear' => $year,
-            'calendarData' => $calendarData,
-            'statistics' => [
-                'totalBookings' => $totalBookings,
-                'totalGuests' => $totalGuests,
-                'upcomingBookings' => $upcomingBookings,
-                'monthlyRevenue' => 0, // Kann später implementiert werden
-            ],
-        ];
-
-        return Inertia::render('dashboard', [
-            'dashboardData' => $dashboardData,
-        ]);
-    }
-
-    /**
-     * Generate calendar data for the dashboard mini-calendar
-     */
-    private function generateCalendarData(Carbon $monthStart, Carbon $monthEnd, $bookings): array
-    {
-        $calendarDays = [];
-        
-        // Nur die tatsächlichen Tage des Monats
-        $startDate = $monthStart->copy();
-        $endDate = $monthEnd->copy();
-
-        $currentDay = $startDate->copy();
-
-        while ($currentDay <= $endDate) {
-            $dayBookings = $bookings->filter(function ($booking) use ($currentDay) {
-                $start = Carbon::parse($booking['start_datum']);
-                $end = Carbon::parse($booking['end_datum']);
-                
-                return $currentDay->between($start, $end);
-            });
-
-            $isArrivalDay = $bookings->some(function ($booking) use ($currentDay) {
-                return Carbon::parse($booking['start_datum'])->isSameDay($currentDay);
-            });
-
-            $isDepartureDay = $bookings->some(function ($booking) use ($currentDay) {
-                return Carbon::parse($booking['end_datum'])->isSameDay($currentDay);
-            });
-
-            $isFullyOccupied = $dayBookings->count() > 0 && !$isArrivalDay && !$isDepartureDay;
-
-            // Determine left and right half states
-            $leftHalf = 'free';
-            $rightHalf = 'free';
-
-            if ($dayBookings->count() > 0) {
-                if ($isArrivalDay && $isDepartureDay) {
-                    // Same day arrival and departure - komplett belegt
-                    $leftHalf = 'occupied';
-                    $rightHalf = 'occupied';
-                } elseif ($isArrivalDay) {
-                    // Arrival day: erste Hälfte frei, zweite Hälfte belegt
-                    $leftHalf = 'free';
-                    $rightHalf = 'occupied';
-                } elseif ($isDepartureDay) {
-                    // Departure day: erste Hälfte belegt, zweite Hälfte frei
-                    $leftHalf = 'occupied';
-                    $rightHalf = 'free';
-                } else {
-                    // Fully occupied day (between arrival and departure)
-                    $leftHalf = 'occupied';
-                    $rightHalf = 'occupied';
-                }
-            }
-
-            $calendarDays[] = [
+            $days[] = [
                 'date' => $currentDay->format('Y-m-d'),
                 'day' => $currentDay->day,
-                'dayName' => $currentDay->locale('de')->shortDayName,
-                'isCurrentMonth' => true,
+                'dayName' => $currentDay->format('D'),
+                'isCurrentMonth' => $currentDay->month === $startOfMonth->month,
                 'isToday' => $currentDay->isToday(),
                 'isWeekend' => $currentDay->isWeekend(),
-                'bookings' => $dayBookings->values(),
-                'hasBookings' => $dayBookings->count() > 0,
+                'bookings' => $bookingsArray,
+                'hasBookings' => $dayBookings->isNotEmpty(),
                 'isArrivalDay' => $isArrivalDay,
                 'isDepartureDay' => $isDepartureDay,
-                'isFullyOccupied' => $isFullyOccupied,
+                'isFullyOccupied' => $leftHalf === 'booked' && $rightHalf === 'booked',
                 'leftHalf' => $leftHalf,
                 'rightHalf' => $rightHalf,
             ];
@@ -160,9 +188,6 @@ class DashboardController extends Controller
             $currentDay->addDay();
         }
 
-        return [
-            'days' => $calendarDays,
-            'weekdays' => ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
-        ];
+        return $days;
     }
 }

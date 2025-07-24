@@ -30,6 +30,28 @@ interface MiniCalendarProps {
     onBookingFormOpen?: (date: string, timeOfDay: 'morning' | 'afternoon') => void;
 }
 
+// Deutsche Monatsnamen
+const germanMonths: { [key: string]: string } = {
+    'January': 'Januar',
+    'February': 'Februar',
+    'March': 'März',
+    'April': 'April',
+    'May': 'Mai',
+    'June': 'Juni',
+    'July': 'Juli',
+    'August': 'August',
+    'September': 'September',
+    'October': 'Oktober',
+    'November': 'November',
+    'December': 'Dezember'
+};
+
+const getGermanMonth = (monthString: string): string => {
+    // Extrahiere den englischen Monatsnamen aus dem String
+    const monthName = monthString.split(' ')[0];
+    return germanMonths[monthName] ? monthString.replace(monthName, germanMonths[monthName]) : monthString;
+};
+
 export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMonth, onNextMonth, onBookingFormOpen }: MiniCalendarProps) {
     const getHalfDayClasses = (half: string, position: 'left' | 'right') => {
         const baseClasses = position === 'left' ? 'absolute top-0 left-0 w-1/2 h-full' : 'absolute top-0 right-0 w-1/2 h-full';
@@ -40,6 +62,8 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
             case 'departure':
                 return cn(baseClasses, 'bg-blue-500'); // Blau für belegt
             case 'occupied':
+                return cn(baseClasses, 'bg-blue-500'); // Blau für belegt
+            case 'booked':
                 return cn(baseClasses, 'bg-blue-500'); // Blau für belegt
             case 'free':
             default:
@@ -66,16 +90,26 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
     };
 
     return (
-        <div className="rounded-lg border bg-white p-4 shadow-sm">
+        <div className="glass-card rounded-lg p-4">
             {/* Header mit Navigation */}
             <div className="mb-4 flex items-center justify-between">
-                <Button variant="ghost" size="sm" onClick={onPrevMonth} className="h-8 w-8 p-0">
+                <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={onPrevMonth} 
+                    className="h-8 w-8 p-0 text-white hover:bg-white/20 hover:text-white"
+                >
                     <ChevronLeft className="h-4 w-4" />
                 </Button>
 
-                <h3 className="text-lg font-semibold">{currentMonth}</h3>
+                <h3 className="text-lg font-semibold text-white">{getGermanMonth(currentMonth)}</h3>
 
-                <Button variant="ghost" size="sm" onClick={onNextMonth} className="h-8 w-8 p-0">
+                <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={onNextMonth} 
+                    className="h-8 w-8 p-0 text-white hover:bg-white/20 hover:text-white"
+                >
                     <ChevronRight className="h-4 w-4" />
                 </Button>
             </div>
@@ -83,7 +117,7 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
             {/* Wochentage Header */}
             <div className="mb-2 grid grid-cols-7 gap-1">
                 {calendarData.weekdays.map((weekday) => (
-                    <div key={weekday} className="p-1 text-center text-xs font-medium text-gray-500">
+                    <div key={weekday} className="flex h-8 items-center justify-center text-xs font-medium text-white/80">
                         {weekday}
                     </div>
                 ))}
@@ -96,10 +130,10 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
                         key={day.date}
                         onClick={(e) => handleDayButtonClick(day, e)}
                         className={cn(
-                            'relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-xs font-medium transition-colors hover:bg-gray-50',
-                            !day.isCurrentMonth && 'text-gray-400 opacity-50',
-                            day.isToday && 'ring-2 ring-blue-500',
-                            day.isWeekend && 'bg-gray-50',
+                            'relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-xs font-medium transition-colors hover:bg-white/20',
+                            !day.isCurrentMonth && 'text-white/40 opacity-50',
+                            day.isToday && 'ring-2 ring-white/60',
+                            day.isWeekend && 'bg-white/10',
                         )}
                         title={`${day.day}. - ${
                             day.leftHalf === 'free' && day.rightHalf === 'free'
@@ -120,7 +154,7 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
                         <div className={cn(getHalfDayClasses(day.rightHalf, 'right'), 'rounded-r-md')} />
 
                         {/* Day number - always on top */}
-                        <span className="pointer-events-none relative z-10 text-xs font-semibold text-gray-900">{day.day}</span>
+                        <span className="pointer-events-none relative z-10 text-xs font-semibold text-white">{day.day}</span>
                     </button>
                 ))}
             </div>

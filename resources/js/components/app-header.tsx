@@ -26,7 +26,7 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const activeItemStyles = 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
+const activeItemStyles = 'text-white bg-white/20';
 
 interface AppHeaderProps {
     breadcrumbs?: BreadcrumbItem[];
@@ -38,28 +38,32 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const getInitials = useInitials();
     return (
         <>
-            <div className="border-b border-sidebar-border/80">
+            <div className="border-b border-white/20 bg-white/10 backdrop-blur-lg">
                 <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
                         <Sheet>
                             <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon" className="mr-2 h-[34px] w-[34px]">
+                                <Button variant="ghost" size="icon" className="mr-2 h-[34px] w-[34px] text-white hover:bg-white/20">
                                     <Menu className="h-5 w-5" />
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="left" className="flex h-full w-64 flex-col items-stretch justify-between bg-sidebar">
+                            <SheetContent side="left" className="glass-card flex h-full w-64 flex-col items-stretch justify-between">
                                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                                 <SheetHeader className="flex justify-start text-left">
                                     <div className="flex items-center space-x-2">
-                                        <AppLogoIcon className="h-6 w-6 text-primary" />
+                                        <AppLogoIcon className="h-6 w-6 text-white" />
                                     </div>
                                 </SheetHeader>
                                 <div className="flex h-full flex-1 flex-col space-y-4 p-4">
                                     <div className="flex h-full flex-col justify-between text-sm">
                                         <div className="flex flex-col space-y-4">
                                             {mainNavItems.map((item) => (
-                                                <Link key={item.title} href={item.href} className="flex items-center space-x-2 font-medium">
+                                                <Link
+                                                    key={item.title}
+                                                    href={item.href}
+                                                    className="flex items-center space-x-2 rounded p-2 font-medium text-white hover:bg-white/20"
+                                                >
                                                     {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
                                                     <span>{item.title}</span>
                                                 </Link>
@@ -73,65 +77,63 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
 
                     <Link href="/dashboard" prefetch className="flex items-center space-x-2">
                         <div className="flex items-center space-x-2">
-                            <AppLogoIcon className="h-8 w-8 text-primary" />
+                            <AppLogoIcon className="h-8 w-8 text-white" />
                         </div>
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className="ml-6 hidden h-full items-center space-x-6 lg:flex">
-                        <NavigationMenu className="flex h-full items-stretch">
-                            <NavigationMenuList className="flex h-full items-stretch space-x-2">
-                                {mainNavItems.map((item, index) => (
-                                    <NavigationMenuItem key={index} className="relative flex h-full items-center">
-                                        <Link
-                                            href={item.href}
-                                            className={cn(
-                                                navigationMenuTriggerStyle(),
-                                                page.url === item.href && activeItemStyles,
-                                                'h-9 cursor-pointer px-3',
-                                            )}
-                                        >
-                                            {item.icon && <Icon iconNode={item.icon} className="mr-2 h-4 w-4" />}
-                                            {item.title}
-                                        </Link>
-                                        {page.url === item.href && (
-                                            <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
+                    <NavigationMenu className="ml-8 hidden lg:flex">
+                        <NavigationMenuList>
+                            {mainNavItems.map((item) => (
+                                <NavigationMenuItem key={item.title}>
+                                    <Link
+                                        prefetch
+                                        href={item.href}
+                                        className={cn(
+                                            navigationMenuTriggerStyle(),
+                                            'bg-transparent text-white/80 hover:bg-white/20 hover:text-white focus:bg-white/20 focus:text-white data-[active]:bg-white/20 data-[active]:text-white data-[state=open]:bg-white/20 data-[state=open]:text-white',
+                                            page.url.startsWith(item.href) ? activeItemStyles : '',
                                         )}
-                                    </NavigationMenuItem>
-                                ))}
-                            </NavigationMenuList>
-                        </NavigationMenu>
-                    </div>
+                                    >
+                                        {item.icon && <Icon iconNode={item.icon} className="mr-2 h-4 w-4" />}
+                                        {item.title}
+                                    </Link>
+                                </NavigationMenuItem>
+                            ))}
+                        </NavigationMenuList>
+                    </NavigationMenu>
 
-                    <div className="ml-auto flex items-center space-x-2">
-                        <div className="relative flex items-center space-x-1">
-                            <Button variant="ghost" size="icon" className="group h-9 w-9 cursor-pointer">
-                                <Search className="!size-5 opacity-80 group-hover:opacity-100" />
-                            </Button>
-                            <div className="hidden lg:flex">{/* Removed rightNavItems as per edit hint */}</div>
-                        </div>
+                    <div className="ml-auto flex items-center space-x-4">
+                        {/* Search */}
+                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                            <Search className="h-5 w-5" />
+                        </Button>
+
+                        {/* User Menu */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="size-10 rounded-full p-1">
-                                    <Avatar className="size-8 overflow-hidden rounded-full">
-                                        <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
-                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                            {getInitials(auth.user.name)}
+                                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={auth?.user?.avatar} alt={auth?.user?.name} />
+                                        <AvatarFallback className="border border-white/30 bg-white/20 text-xs text-white">
+                                            {getInitials(auth?.user?.name)}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end">
-                                <UserMenuContent user={auth.user} />
+                            <DropdownMenuContent className="glass-card w-56 border-white/20" align="end" forceMount>
+                                <UserMenuContent />
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
                 </div>
             </div>
-            {breadcrumbs.length > 1 && (
-                <div className="flex w-full border-b border-sidebar-border/70">
-                    <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
-                        <Breadcrumbs breadcrumbs={breadcrumbs} />
+
+            {/* Breadcrumbs */}
+            {breadcrumbs.length > 0 && (
+                <div className="border-b border-white/10 bg-white/5 py-2 backdrop-blur-lg">
+                    <div className="mx-auto px-4 md:max-w-7xl">
+                        <Breadcrumbs items={breadcrumbs} />
                     </div>
                 </div>
             )}

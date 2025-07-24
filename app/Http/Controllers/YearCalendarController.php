@@ -32,7 +32,6 @@ class YearCalendarController extends Controller
                 $query->where('start_datum', '<=', $endOfYear)
                       ->where('end_datum', '>', $endOfYear);
             })
-            ->confirmed()
             ->orderBy('start_datum')
             ->get()
             ->map(function ($booking) {
@@ -45,8 +44,6 @@ class YearCalendarController extends Controller
                     'gast_anzahl' => $booking->gast_anzahl,
                     'status' => $booking->status->value,
                     'status_name' => $booking->status_name,
-                    'duration' => $booking->duration,
-                    'date_range' => $booking->date_range,
                     'user' => [
                         'id' => $booking->user->id,
                         'name' => $booking->user->name,

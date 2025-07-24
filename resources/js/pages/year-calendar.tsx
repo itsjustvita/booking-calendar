@@ -162,20 +162,29 @@ export default function YearCalendar() {
     };
 
     const renderMonth = (monthData: MonthData) => (
-        <Card key={monthData.month} className="p-4">
+        <Card key={monthData.month} className="glass-card p-4">
             <div className="space-y-3">
-                <h3 className="text-center text-lg font-semibold">{monthData.monthName}</h3>
+                <h3 className="text-center text-lg font-semibold text-white">{monthData.monthName}</h3>
 
-                {/* Flexibles Layout nur für Monatstage */}
+                {/* Wochentage Header */}
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                    {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((weekday) => (
+                        <div key={weekday} className="text-center text-xs font-medium text-white/70 p-1">
+                            {weekday}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Monatstage */}
                 <div className="grid grid-cols-7 gap-1">
                     {monthData.calendarData.days.map((day) => (
                         <button
                             key={day.date}
                             onClick={(e) => handleDayButtonClick(day, e)}
                             className={cn(
-                                'relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-xs font-medium transition-colors hover:bg-gray-50',
-                                day.isToday && 'ring-2 ring-blue-500',
-                                day.isWeekend && 'bg-gray-50',
+                                'relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-xs font-medium transition-colors hover:bg-white/20',
+                                day.isToday && 'ring-2 ring-white/60',
+                                day.isWeekend && 'bg-white/10',
                             )}
                             title={`${day.day}.${monthData.month}.${year} - ${
                                 day.leftHalf === 'free' && day.rightHalf === 'free'
@@ -194,7 +203,7 @@ export default function YearCalendar() {
                             <div className={cn(getHalfDayClasses(day.rightHalf, 'right'), 'rounded-r-md')} />
 
                             {/* Day number - always on top */}
-                            <span className="pointer-events-none relative z-10 text-xs font-semibold text-gray-900">{day.day}</span>
+                            <span className="pointer-events-none relative z-10 text-xs font-semibold text-white">{day.day}</span>
                         </button>
                     ))}
                 </div>
@@ -211,18 +220,18 @@ export default function YearCalendar() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                            <Link href={`/kalender?year=${previousYear}`} className="rounded p-1 hover:bg-gray-100">
+                            <Link href={`/kalender?year=${previousYear}`} className="rounded p-1 hover:bg-white/20 text-white">
                                 <ChevronLeft className="h-5 w-5" />
                             </Link>
-                            <h1 className="text-3xl font-bold">Kalender {year}</h1>
-                            <Link href={`/kalender?year=${nextYear}`} className="rounded p-1 hover:bg-gray-100">
+                            <h1 className="text-3xl font-bold glass-heading">Kalender {year}</h1>
+                            <Link href={`/kalender?year=${nextYear}`} className="rounded p-1 hover:bg-white/20 text-white">
                                 <ChevronRight className="h-5 w-5" />
                             </Link>
                         </div>
                     </div>
 
                     <div className="flex gap-2">
-                        <Button variant="outline" asChild>
+                        <Button variant="outline" asChild className="glass-button border-white/30 text-white hover:bg-white/20">
                             <Link href="/dashboard">
                                 <Calendar className="mr-2 h-4 w-4" />
                                 Zum Dashboard
@@ -233,47 +242,47 @@ export default function YearCalendar() {
 
                 {/* Year Statistics */}
                 <div className="grid gap-4 md:grid-cols-4">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Buchungen {year}</CardTitle>
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Card className="glass-card">
+                        <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="glass-card-title text-sm font-medium">Buchungen {year}</CardTitle>
+                            <Calendar className="h-4 w-4 text-white/70" />
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="glass-card-content">
                             <div className="text-2xl font-bold">{yearStats.totalBookings}</div>
-                            <p className="text-xs text-muted-foreground">{yearStats.totalBookings === 1 ? 'Buchung' : 'Buchungen'} bestätigt</p>
+                            <p className="text-xs text-white/70">{yearStats.totalBookings === 1 ? 'Buchung' : 'Buchungen'} bestätigt</p>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Gäste gesamt</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
+                    <Card className="glass-card">
+                        <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="glass-card-title text-sm font-medium">Gäste gesamt</CardTitle>
+                            <Users className="h-4 w-4 text-white/70" />
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="glass-card-content">
                             <div className="text-2xl font-bold">{yearStats.totalGuests}</div>
-                            <p className="text-xs text-muted-foreground">{yearStats.totalGuests === 1 ? 'Person' : 'Personen'} insgesamt</p>
+                            <p className="text-xs text-white/70">{yearStats.totalGuests === 1 ? 'Person' : 'Personen'} insgesamt</p>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Belegte Tage</CardTitle>
-                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <Card className="glass-card">
+                        <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="glass-card-title text-sm font-medium">Belegte Tage</CardTitle>
+                            <TrendingUp className="h-4 w-4 text-white/70" />
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="glass-card-content">
                             <div className="text-2xl font-bold">{yearStats.occupiedDays}</div>
-                            <p className="text-xs text-muted-foreground">von 365 Tagen belegt</p>
+                            <p className="text-xs text-white/70">von 365 Tagen belegt</p>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Stärkster Monat</CardTitle>
-                            <Badge variant="outline">{yearStats.mostBusyMonth.bookingCount}</Badge>
+                    <Card className="glass-card">
+                        <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="glass-card-title text-sm font-medium">Stärkster Monat</CardTitle>
+                            <Badge variant="outline" className="border-white/30 text-white">{yearStats.mostBusyMonth.bookingCount}</Badge>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="glass-card-content">
                             <div className="text-lg font-bold">{yearStats.mostBusyMonth.monthName}</div>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-white/70">
                                 {yearStats.mostBusyMonth.bookingCount} {yearStats.mostBusyMonth.bookingCount === 1 ? 'Buchung' : 'Buchungen'}
                             </p>
                         </CardContent>
@@ -281,40 +290,40 @@ export default function YearCalendar() {
                 </div>
 
                 {/* Legend */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">Legende</CardTitle>
+                <Card className="glass-card">
+                    <CardHeader className="glass-card-header">
+                        <CardTitle className="glass-card-title text-lg">Legende</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="flex flex-wrap gap-4 text-sm">
+                    <CardContent className="glass-card-content">
+                        <div className="flex flex-wrap gap-4 text-sm text-white">
                             <div className="flex items-center gap-2">
-                                <div className="relative h-5 w-5 border border-gray-300">
+                                <div className="relative h-5 w-5 border border-white/30">
                                     <div className="absolute top-0 left-0 h-full w-1/2 bg-transparent" />
                                     <div className="absolute top-0 right-0 h-full w-1/2 bg-blue-500" />
                                 </div>
                                 <span>Anreisetag (vormittags frei, nachmittags belegt)</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="h-5 w-5 border border-gray-300 bg-blue-500" />
+                                <div className="h-5 w-5 border border-white/30 bg-blue-500" />
                                 <span>Voll belegt</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="relative h-5 w-5 border border-gray-300">
+                                <div className="relative h-5 w-5 border border-white/30">
                                     <div className="absolute top-0 left-0 h-full w-1/2 bg-blue-500" />
                                     <div className="absolute top-0 right-0 h-full w-1/2 bg-transparent" />
                                 </div>
                                 <span>Abreisetag (vormittags belegt, nachmittags frei)</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="h-5 w-5 border border-gray-300 bg-transparent" />
+                                <div className="h-5 w-5 border border-white/30 bg-transparent" />
                                 <span>Frei</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="h-5 w-5 border border-gray-300 bg-blue-500" />
+                                <div className="h-5 w-5 border border-white/30 bg-blue-500" />
                                 <span>An- und Abreise am selben Tag (komplett belegt)</span>
                             </div>
                         </div>
-                        <p className="mt-2 text-xs text-muted-foreground">
+                        <p className="mt-2 text-xs text-white/70">
                             💡 Anreise ist nachmittags, Abreise ist vormittags - dadurch können sich Buchungen um einen halben Tag überschneiden.
                         </p>
                     </CardContent>

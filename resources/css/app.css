@@ -157,3 +157,129 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Glassmorphism Styles für Auth-Seiten */
+@layer components {
+    .glass-input {
+        @apply border border-white/20 bg-white/10 text-white backdrop-blur-sm placeholder:text-white/60 focus:border-white/30 focus:bg-white/15 focus:ring-white/20;
+    }
+
+    .glass-button {
+        @apply border border-white/25 bg-white/15 font-medium text-white backdrop-blur-sm transition-all duration-200 hover:border-white/35 hover:bg-white/20 focus:ring-white/20;
+    }
+
+    .glass-label {
+        @apply text-sm font-medium text-white/90;
+    }
+
+    .glass-checkbox {
+        @apply border-white/30 bg-white/10 data-[state=checked]:border-white/40 data-[state=checked]:bg-white/20;
+    }
+
+    .glass-link {
+        @apply text-white/80 underline decoration-white/50 underline-offset-4 transition-colors hover:text-white hover:decoration-white;
+    }
+
+    /* Dashboard Glassmorphism Styles - mit !important um Card-Defaults zu überschreiben */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.15) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
+        transition: all 0.3s ease !important;
+        color: white !important;
+    }
+
+    .glass-card:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.4) !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15) inset !important;
+        transform: translateY(-2px) !important;
+    }
+
+    .glass-card-header {
+        color: rgba(255, 255, 255, 0.95) !important;
+    }
+
+    .glass-card-title {
+        color: white !important;
+        font-weight: 600 !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .glass-card-content {
+        color: white !important;
+    }
+
+    .glass-card-content .text-2xl {
+        color: white !important;
+        font-weight: bold !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .glass-card-content .text-xs {
+        color: rgba(255, 255, 255, 0.8) !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .glass-heading {
+        color: white !important;
+        font-weight: bold !important;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6) !important;
+    }
+
+    .glass-text {
+        color: rgba(255, 255, 255, 0.9) !important;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .glass-mini-card {
+        background: rgba(255, 255, 255, 0.12) !important;
+        backdrop-filter: blur(16px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .glass-mini-card:hover {
+        background: rgba(255, 255, 255, 0.18) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    /* Spezifische Überschreibungen für alle Card-Inhalte */
+    .glass-card div[data-slot='card-header'],
+    .glass-card div[data-slot='card-content'],
+    .glass-card div[data-slot='card-title'] {
+        color: white !important;
+    }
+
+    .glass-card div[data-slot='card-content'] div,
+    .glass-card div[data-slot='card-content'] p {
+        color: white !important;
+    }
+
+    .glass-card div[data-slot='card-content'] .text-2xl {
+        color: white !important;
+        font-weight: bold !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .glass-card div[data-slot='card-content'] .text-xs {
+        color: rgba(255, 255, 255, 0.8) !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Dashboard Background */
+    .dashboard-background {
+        background-image: url('/dashboard-background.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+
+    .dashboard-overlay {
+        @apply absolute inset-0 bg-black/40 backdrop-blur-[2px];
+    }
+}
