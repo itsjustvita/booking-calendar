@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Calendar, Clock, Cloud, MapPin, TrendingUp, Users } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface CalendarDay {
     date: string;
@@ -59,6 +59,7 @@ interface WeatherData {
 interface Props {
     dashboardData: DashboardData;
     weatherLocation: WeatherLocation;
+    weatherData?: WeatherData;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -79,26 +80,8 @@ const formatGermanDate = (dateString: string): string => {
 };
 
 // Wetter-Widget Komponente
-const WeatherWidget = ({ weatherLocation }: { weatherLocation: WeatherLocation }) => {
-    const [weather, setWeather] = useState<WeatherData | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        // Simulation von Wetterdaten mit den Admin-konfigurierten Standortdaten
-        // In der realen Anwendung würde hier eine API aufgerufen werden
-        setTimeout(() => {
-            setWeather({
-                temperature: Math.round(Math.random() * 20 + 5), // 5-25°C
-                description: ['Sonnig', 'Teilweise bewölkt', 'Bewölkt', 'Leichter Regen'][Math.floor(Math.random() * 4)],
-                humidity: Math.round(Math.random() * 40 + 40), // 40-80%
-                windSpeed: Math.round(Math.random() * 20 + 5), // 5-25 km/h
-                location: `${weatherLocation.city}, ${weatherLocation.country}`,
-            });
-            setLoading(false);
-        }, 1000);
-    }, [weatherLocation]);
-
-    if (loading) {
+const WeatherWidget = ({ weatherLocation, weatherData }: { weatherLocation: WeatherLocation; weatherData?: WeatherData }) => {
+    if (!weatherData) {
         return (
             <Card className="glass-card">
                 <CardHeader className="glass-card-header">
@@ -117,8 +100,6 @@ const WeatherWidget = ({ weatherLocation }: { weatherLocation: WeatherLocation }
         );
     }
 
-    if (!weather) return null;
-
     return (
         <Card className="glass-card">
             <CardHeader className="glass-card-header">
@@ -131,18 +112,18 @@ const WeatherWidget = ({ weatherLocation }: { weatherLocation: WeatherLocation }
                 <div className="space-y-3">
                     <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-white/70" />
-                        <span className="text-sm text-white/80">{weather.location}</span>
+                        <span className="text-sm text-white/80">{weatherData.location}</span>
                     </div>
-                    <div className="text-3xl font-bold">{weather.temperature}°C</div>
-                    <p className="text-white/80">{weather.description}</p>
+                    <div className="text-3xl font-bold">{weatherData.temperature}°C</div>
+                    <p className="text-white/80">{weatherData.description}</p>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                             <span className="text-white/70">Luftfeuchtigkeit</span>
-                            <div className="font-medium">{weather.humidity}%</div>
+                            <div className="font-medium">{weatherData.humidity}%</div>
                         </div>
                         <div>
                             <span className="text-white/70">Wind</span>
-                            <div className="font-medium">{weather.windSpeed} km/h</div>
+                            <div className="font-medium">{weatherData.windSpeed} km/h</div>
                         </div>
                     </div>
                 </div>
@@ -151,7 +132,7 @@ const WeatherWidget = ({ weatherLocation }: { weatherLocation: WeatherLocation }
     );
 };
 
-export default function Dashboard({ dashboardData, weatherLocation }: Props) {
+export default function Dashboard({ dashboardData, weatherLocation, weatherData }: Props) {
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
     const [showBookingModal, setShowBookingModal] = useState(false);
     const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
@@ -292,7 +273,7 @@ export default function Dashboard({ dashboardData, weatherLocation }: Props) {
                     </div>
 
                     {/* Wetter-Widget */}
-                    <WeatherWidget weatherLocation={weatherLocation} />
+                    <WeatherWidget weatherLocation={weatherLocation} weatherData={weatherData} />
                 </div>
 
                 {/* Kommende Buchungen */}

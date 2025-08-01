@@ -13,7 +13,9 @@ const setCookie = (name: string, value: string, days = 365) => {
 
 const applyTheme = (appearance: Appearance) => {
     // Always use light theme
-    document.documentElement.classList.remove('dark');
+    if (typeof document !== 'undefined') {
+        document.documentElement.classList.remove('dark');
+    }
 };
 
 export function initializeTheme() {
@@ -22,18 +24,29 @@ export function initializeTheme() {
 
 export function useAppearance() {
     const [appearance, setAppearance] = useState<Appearance>('light');
+    const [isClient, setIsClient] = useState(false);
 
     const updateAppearance = useCallback((mode: Appearance) => {
         // Force light mode only
         setAppearance('light');
-        localStorage.setItem('appearance', 'light');
+        
+        // Only use localStorage on client side
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('appearance', 'light');
+        }
+        
         setCookie('appearance', 'light');
         applyTheme('light');
     }, []);
 
     useEffect(() => {
+        setIsClient(true);
         updateAppearance('light');
     }, [updateAppearance]);
 
-    return { appearance: 'light' as const, updateAppearance } as const;
+    return { 
+        appearance: 'light' as const, 
+        updateAppearance,
+        isClient 
+    } as const;
 }

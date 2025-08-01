@@ -79,6 +79,15 @@ class DashboardController extends Controller
             ]
         ]);
 
+        // Wetterdaten simulieren (in der realen Anwendung würde hier eine API aufgerufen werden)
+        $weatherData = [
+            'temperature' => rand(5, 25), // 5-25°C
+            'description' => ['Sonnig', 'Teilweise bewölkt', 'Bewölkt', 'Leichter Regen'][array_rand(['Sonnig', 'Teilweise bewölkt', 'Bewölkt', 'Leichter Regen'])],
+            'humidity' => rand(40, 80), // 40-80%
+            'windSpeed' => rand(5, 25), // 5-25 km/h
+            'location' => $weatherLocation['city'] . ', ' . $weatherLocation['country'],
+        ];
+
         return Inertia::render('dashboard', [
             'dashboardData' => [
                 'currentMonth' => $date->locale('de')->format('F Y'),
@@ -95,6 +104,7 @@ class DashboardController extends Controller
                 ],
             ],
             'weatherLocation' => $weatherLocation,
+            'weatherData' => $weatherData,
         ]);
     }
 
@@ -103,9 +113,9 @@ class DashboardController extends Controller
         $days = [];
         $current = $startOfMonth->copy();
 
-        // Add days from previous month to fill the week
-        $startOfCalendar = $current->copy()->startOfWeek(Carbon::MONDAY);
-        $endOfCalendar = $endOfMonth->copy()->endOfWeek(Carbon::SUNDAY);
+        // Beginne am ersten Tag des Monats, nicht am Montag der Woche
+        $startOfCalendar = $current->copy();
+        $endOfCalendar = $endOfMonth->copy();
 
         $currentDay = $startOfCalendar->copy();
 
@@ -127,31 +137,27 @@ class DashboardController extends Controller
                 return Carbon::parse($booking->end_datum)->isSameDay($currentDay);
             });
 
-            $leftHalf = 'free';
-            $rightHalf = 'free';
-
-            if ($dayBookings->isNotEmpty()) {
-                if ($isArrivalDay && $isDepartureDay) {
-                    // Same day arrival and departure
-                    $leftHalf = 'free';
-                    $rightHalf = 'free';
-                } elseif ($isArrivalDay) {
-                    // Arrival day: morning free, afternoon/evening booked
-                    $leftHalf = 'free';
-                    $rightHalf = 'booked';
-                } elseif ($isDepartureDay) {
-                    // Departure day: morning booked, afternoon/evening free
-                    $leftHalf = 'booked';
-                    $rightHalf = 'free';
-                } else {
-                    // Fully booked day
-                    $leftHalf = 'booked';
-                    $rightHalf = 'booked';
-                }
+            // Korrigierte Logik für die Tageshälften
+            if ($isArrivalDay && $isDepartureDay) {
+                $leftHalf = 'occupied';
+                $rightHalf = 'occupied';
+            } elseif ($isArrivalDay) {
+                $leftHalf = 'free';
+                $rightHalf = 'occupied';
+            } elseif ($isDepartureDay) {
+                $leftHalf = 'occupied';
+                $rightHalf = 'free';
+            } elseif ($dayBookings->isNotEmpty()) {
+                $leftHalf = 'occupied';
+                $rightHalf = 'occupied';
             }
 
             // Convert bookings to array with necessary data
             $bookingsArray = $dayBookings->map(function ($booking) {
+                $startDate = Carbon::parse($booking->start_datum);
+                $endDate = Carbon::parse($booking->end_datum);
+                $duration = $startDate->diffInDays($endDate) + 1;
+                
                 return [
                     'id' => $booking->id,
                     'titel' => $booking->titel,
@@ -161,26 +167,30 @@ class DashboardController extends Controller
                     'gast_anzahl' => $booking->gast_anzahl,
                     'status' => $booking->status->value,
                     'status_name' => $booking->status_name,
+                    'duration' => $duration,
+                    'date_range' => $startDate->format('d.m.Y') . ' - ' . $endDate->format('d.m.Y'),
                     'user' => [
                         'id' => $booking->user->id,
                         'name' => $booking->user->name,
                         'email' => $booking->user->email,
                     ],
+                    'can_edit' => auth()->user() ? auth()->user()->can('update', $booking) : false,
+                    'can_delete' => auth()->user() ? auth()->user()->can('delete', $booking) : false,
                 ];
             })->toArray();
 
             $days[] = [
                 'date' => $currentDay->format('Y-m-d'),
                 'day' => $currentDay->day,
-                'dayName' => $currentDay->format('D'),
+                'dayName' => $currentDay->locale('de')->shortDayName,
                 'isCurrentMonth' => $currentDay->month === $startOfMonth->month,
                 'isToday' => $currentDay->isToday(),
-                'isWeekend' => $currentDay->isWeekend(),
+                'isWeekend' => $currentDay->dayOfWeek === 6 || $currentDay->dayOfWeek === 0, // Samstag = 6, Sonntag = 0
                 'bookings' => $bookingsArray,
                 'hasBookings' => $dayBookings->isNotEmpty(),
                 'isArrivalDay' => $isArrivalDay,
                 'isDepartureDay' => $isDepartureDay,
-                'isFullyOccupied' => $leftHalf === 'booked' && $rightHalf === 'booked',
+                'isFullyOccupied' => $leftHalf === 'occupied' && $rightHalf === 'occupied',
                 'leftHalf' => $leftHalf,
                 'rightHalf' => $rightHalf,
             ];

@@ -4,7 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { type PropsWithChildren } from 'react';
+import { type PropsWithChildren, useState, useEffect } from 'react';
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -28,14 +28,17 @@ const adminNavItems: NavItem[] = [
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
-    // When server-side rendering, we only render the layout on the client...
-    if (typeof window === 'undefined') {
-        return null;
-    }
-
-    const currentPath = window.location.pathname;
+    const [currentPath, setCurrentPath] = useState<string>('');
+    const [isClient, setIsClient] = useState(false);
     const { auth } = usePage<SharedData>().props;
     const isAdmin = auth.user.role === 'admin';
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setIsClient(true);
+            setCurrentPath(window.location.pathname);
+        }
+    }, []);
 
     const allNavItems = isAdmin ? [...sidebarNavItems, ...adminNavItems] : sidebarNavItems;
 
@@ -53,7 +56,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                 variant="ghost"
                                 asChild
                                 className={cn('w-full justify-start', {
-                                    'bg-muted': currentPath === item.href,
+                                    'bg-muted': isClient && currentPath === item.href,
                                 })}
                             >
                                 <Link href={item.href} prefetch>

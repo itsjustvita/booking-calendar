@@ -129,28 +129,22 @@ class YearCalendarController extends Controller
 
             $isFullyOccupied = $dayBookings->count() > 0 && !$isArrivalDay && !$isDepartureDay;
 
-            // Determine left and right half states
+            // Korrigierte Logik für die Tageshälften
             $leftHalf = 'free';
             $rightHalf = 'free';
 
-            if ($dayBookings->count() > 0) {
-                if ($isArrivalDay && $isDepartureDay) {
-                    // Same day arrival and departure - komplett belegt
-                    $leftHalf = 'occupied';
-                    $rightHalf = 'occupied';
-                } elseif ($isArrivalDay) {
-                    // Arrival day: erste Hälfte frei, zweite Hälfte belegt
-                    $leftHalf = 'free';
-                    $rightHalf = 'occupied';
-                } elseif ($isDepartureDay) {
-                    // Departure day: erste Hälfte belegt, zweite Hälfte frei
-                    $leftHalf = 'occupied';
-                    $rightHalf = 'free';
-                } else {
-                    // Fully occupied day (between arrival and departure)
-                    $leftHalf = 'occupied';
-                    $rightHalf = 'occupied';
-                }
+            if ($isArrivalDay && $isDepartureDay) {
+                $leftHalf = 'occupied';
+                $rightHalf = 'occupied';
+            } elseif ($isArrivalDay) {
+                $leftHalf = 'free';
+                $rightHalf = 'occupied';
+            } elseif ($isDepartureDay) {
+                $leftHalf = 'occupied';
+                $rightHalf = 'free';
+            } elseif ($dayBookings->count() > 0) {
+                $leftHalf = 'occupied';
+                $rightHalf = 'occupied';
             }
 
             $calendarDays[] = [
@@ -159,7 +153,7 @@ class YearCalendarController extends Controller
                 'dayName' => $currentDay->locale('de')->shortDayName,
                 'isCurrentMonth' => true, // Alle Tage sind jetzt im aktuellen Monat
                 'isToday' => $currentDay->isToday(),
-                'isWeekend' => $currentDay->isWeekend(),
+                'isWeekend' => $currentDay->dayOfWeek === 6 || $currentDay->dayOfWeek === 0, // Samstag = 6, Sonntag = 0
                 'bookings' => $dayBookings->values(),
                 'hasBookings' => $dayBookings->count() > 0,
                 'isArrivalDay' => $isArrivalDay,

@@ -10,7 +10,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Calendar, LayoutGrid, Menu, Search } from 'lucide-react';
+import { Calendar, LayoutGrid, List, Menu, Search } from 'lucide-react';
 import { AppLogoIcon } from './app-logo-icon';
 
 const mainNavItems: NavItem[] = [
@@ -21,8 +21,13 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Jahreskalender',
-        href: '/kalender',
+        href: '/year-calendar',
         icon: Calendar,
+    },
+    {
+        title: 'Buchungsübersicht',
+        href: '/booking-overview',
+        icon: List,
     },
 ];
 

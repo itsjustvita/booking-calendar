@@ -32,18 +32,18 @@ interface MiniCalendarProps {
 
 // Deutsche Monatsnamen
 const germanMonths: { [key: string]: string } = {
-    'January': 'Januar',
-    'February': 'Februar',
-    'March': 'März',
-    'April': 'April',
-    'May': 'Mai',
-    'June': 'Juni',
-    'July': 'Juli',
-    'August': 'August',
-    'September': 'September',
-    'October': 'Oktober',
-    'November': 'November',
-    'December': 'Dezember'
+    January: 'Januar',
+    February: 'Februar',
+    March: 'März',
+    April: 'April',
+    May: 'Mai',
+    June: 'Juni',
+    July: 'Juli',
+    August: 'August',
+    September: 'September',
+    October: 'Oktober',
+    November: 'November',
+    December: 'Dezember',
 };
 
 const getGermanMonth = (monthString: string): string => {
@@ -53,17 +53,15 @@ const getGermanMonth = (monthString: string): string => {
 };
 
 export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMonth, onNextMonth, onBookingFormOpen }: MiniCalendarProps) {
+    console.log(
+        'MiniCalendar Wochentage:',
+        calendarData.days.slice(0, 7).map((d) => `${d.day}: ${d.dayName}`),
+    );
     const getHalfDayClasses = (half: string, position: 'left' | 'right') => {
         const baseClasses = position === 'left' ? 'absolute top-0 left-0 w-1/2 h-full' : 'absolute top-0 right-0 w-1/2 h-full';
 
         switch (half) {
-            case 'arrival':
-                return cn(baseClasses, 'bg-blue-500'); // Blau für belegt
-            case 'departure':
-                return cn(baseClasses, 'bg-blue-500'); // Blau für belegt
             case 'occupied':
-                return cn(baseClasses, 'bg-blue-500'); // Blau für belegt
-            case 'booked':
                 return cn(baseClasses, 'bg-blue-500'); // Blau für belegt
             case 'free':
             default:
@@ -89,27 +87,22 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
         }
     };
 
+    // Offset für Monatsanfang berechnen
+    const firstDayOfWeek = calendarData.days[0]?.dayName;
+    const weekdayOrder = ['Mo.', 'Di.', 'Mi.', 'Do.', 'Fr.', 'Sa.', 'So.'];
+    const offset = weekdayOrder.indexOf(firstDayOfWeek);
+
     return (
         <div className="glass-card rounded-lg p-4">
             {/* Header mit Navigation */}
             <div className="mb-4 flex items-center justify-between">
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={onPrevMonth} 
-                    className="h-8 w-8 p-0 text-white hover:bg-white/20 hover:text-white"
-                >
+                <Button variant="ghost" size="sm" onClick={onPrevMonth} className="h-8 w-8 p-0 text-white hover:bg-white/20 hover:text-white">
                     <ChevronLeft className="h-4 w-4" />
                 </Button>
 
                 <h3 className="text-lg font-semibold text-white">{getGermanMonth(currentMonth)}</h3>
 
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={onNextMonth} 
-                    className="h-8 w-8 p-0 text-white hover:bg-white/20 hover:text-white"
-                >
+                <Button variant="ghost" size="sm" onClick={onNextMonth} className="h-8 w-8 p-0 text-white hover:bg-white/20 hover:text-white">
                     <ChevronRight className="h-4 w-4" />
                 </Button>
             </div>
@@ -125,6 +118,11 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
 
             {/* Kalender Grid */}
             <div className="grid grid-cols-7 gap-1">
+                {/* Offset */}
+                {Array.from({ length: offset }).map((_, i) => (
+                    <div key={`empty-${i}`} />
+                ))}
+                {/* Tage */}
                 {calendarData.days.map((day) => (
                     <button
                         key={day.date}
@@ -135,7 +133,7 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
                             day.isToday && 'ring-2 ring-white/60',
                             day.isWeekend && 'bg-white/10',
                         )}
-                        title={`${day.day}. - ${
+                        title={`${day.day}. - ${day.dayName} - ${
                             day.leftHalf === 'free' && day.rightHalf === 'free'
                                 ? 'Frei (klicken zum Buchen)'
                                 : day.leftHalf === 'free'

@@ -42,8 +42,8 @@ interface CalendarDay {
     isArrivalDay: boolean;
     isDepartureDay: boolean;
     isFullyOccupied: boolean;
-    leftHalf: 'arrival' | 'occupied' | 'free';
-    rightHalf: 'departure' | 'occupied' | 'free';
+    leftHalf: 'occupied' | 'free';
+    rightHalf: 'occupied' | 'free';
 }
 
 interface CalendarData {
@@ -142,10 +142,6 @@ export default function YearCalendar() {
         const baseClasses = position === 'left' ? 'absolute top-0 left-0 w-1/2 h-full' : 'absolute top-0 right-0 w-1/2 h-full';
 
         switch (half) {
-            case 'arrival':
-                return cn(baseClasses, 'bg-blue-500'); // Blau für belegt
-            case 'departure':
-                return cn(baseClasses, 'bg-blue-500'); // Blau für belegt
             case 'occupied':
                 return cn(baseClasses, 'bg-blue-500'); // Blau für belegt
             case 'free':
@@ -161,54 +157,71 @@ export default function YearCalendar() {
         });
     };
 
-    const renderMonth = (monthData: MonthData) => (
-        <Card key={monthData.month} className="glass-card p-4">
-            <div className="space-y-3">
-                <h3 className="text-center text-lg font-semibold text-white">{monthData.monthName}</h3>
+    const renderMonth = (monthData: MonthData) => {
+        // Offset für Monatsanfang berechnen
+        const weekdayOrder = ['Mo.', 'Di.', 'Mi.', 'Do.', 'Fr.', 'Sa.', 'So.'];
+        const firstDayOfWeek = monthData.calendarData.days[0]?.dayName;
+        const offset = weekdayOrder.indexOf(firstDayOfWeek);
 
-                {/* Wochentage Header */}
-                <div className="grid grid-cols-7 gap-1 mb-2">
-                    {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((weekday) => (
-                        <div key={weekday} className="text-center text-xs font-medium text-white/70 p-1">
-                            {weekday}
-                        </div>
-                    ))}
+        return (
+            <Card key={monthData.month} className="glass-card p-4">
+                <div className="space-y-3">
+                    <h3 className="text-center text-lg font-semibold text-white">{monthData.monthName}</h3>
+
+                    {/* Wochentage Header */}
+                    <div className="mb-2 grid grid-cols-7 gap-1">
+                        {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((weekday) => (
+                            <div key={weekday} className="p-1 text-center text-xs font-medium text-white/70">
+                                {weekday}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Monatstage */}
+                    <div className="grid grid-cols-7 gap-1">
+                        {/* Offset */}
+                        {Array.from({ length: offset }).map((_, i) => (
+                            <div key={`empty-${i}`} />
+                        ))}
+                        {/* Tage */}
+                        {monthData.calendarData.days.map((day) => (
+                            <button
+                                key={day.date}
+                                onClick={(e) => handleDayButtonClick(day, e)}
+                                className={cn(
+                                    'relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-xs font-medium transition-colors hover:bg-white/20',
+                                    day.isToday && 'ring-2 ring-white/60',
+                                    day.isWeekend && 'bg-white/10',
+                                )}
+                                title={`${day.day}.${monthData.month}.${year} - ${day.dayName} - ${
+                                    day.leftHalf === 'free' && day.rightHalf === 'free'
+                                        ? 'Frei (klicken zum Buchen)'
+                                        : day.leftHalf === 'free'
+                                          ? 'Vormittag frei, Nachmittag belegt'
+                                          : day.rightHalf === 'free'
+                                            ? 'Vormittag belegt, Nachmittag frei'
+                                            : 'Komplett belegt'
+                                }`}
+                            >
+                                {/* Left half - visuell */}
+                                <div className={cn(getHalfDayClasses(day.leftHalf, 'left'), 'rounded-l-md')} />
+
+                                {/* Right half - visuell */}
+                                <div className={cn(getHalfDayClasses(day.rightHalf, 'right'), 'rounded-r-md')} />
+
+                                {/* Day number - always on top */}
+                                <span className="pointer-events-none relative z-10 text-xs font-semibold text-white">{day.day}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
+            </Card>
+        );
+    };
 
-                {/* Monatstage */}
-                <div className="grid grid-cols-7 gap-1">
-                    {monthData.calendarData.days.map((day) => (
-                        <button
-                            key={day.date}
-                            onClick={(e) => handleDayButtonClick(day, e)}
-                            className={cn(
-                                'relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-xs font-medium transition-colors hover:bg-white/20',
-                                day.isToday && 'ring-2 ring-white/60',
-                                day.isWeekend && 'bg-white/10',
-                            )}
-                            title={`${day.day}.${monthData.month}.${year} - ${
-                                day.leftHalf === 'free' && day.rightHalf === 'free'
-                                    ? 'Frei (klicken zum Buchen)'
-                                    : day.leftHalf === 'free'
-                                      ? 'Vormittag frei, Nachmittag belegt'
-                                      : day.rightHalf === 'free'
-                                        ? 'Vormittag belegt, Nachmittag frei'
-                                        : 'Komplett belegt'
-                            }`}
-                        >
-                            {/* Left half - visuell */}
-                            <div className={cn(getHalfDayClasses(day.leftHalf, 'left'), 'rounded-l-md')} />
-
-                            {/* Right half - visuell */}
-                            <div className={cn(getHalfDayClasses(day.rightHalf, 'right'), 'rounded-r-md')} />
-
-                            {/* Day number - always on top */}
-                            <span className="pointer-events-none relative z-10 text-xs font-semibold text-white">{day.day}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
-        </Card>
+    console.log(
+        'YearCalendar Januar:',
+        monthsData[0].calendarData.days.slice(0, 7).map((d) => `${d.day}: ${d.dayName}`),
     );
 
     return (
@@ -220,11 +233,11 @@ export default function YearCalendar() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                            <Link href={`/kalender?year=${previousYear}`} className="rounded p-1 hover:bg-white/20 text-white">
+                            <Link href={`/kalender?year=${previousYear}`} className="rounded p-1 text-white hover:bg-white/20">
                                 <ChevronLeft className="h-5 w-5" />
                             </Link>
-                            <h1 className="text-3xl font-bold glass-heading">Kalender {year}</h1>
-                            <Link href={`/kalender?year=${nextYear}`} className="rounded p-1 hover:bg-white/20 text-white">
+                            <h1 className="glass-heading text-3xl font-bold">Kalender {year}</h1>
+                            <Link href={`/kalender?year=${nextYear}`} className="rounded p-1 text-white hover:bg-white/20">
                                 <ChevronRight className="h-5 w-5" />
                             </Link>
                         </div>
@@ -278,7 +291,9 @@ export default function YearCalendar() {
                     <Card className="glass-card">
                         <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="glass-card-title text-sm font-medium">Stärkster Monat</CardTitle>
-                            <Badge variant="outline" className="border-white/30 text-white">{yearStats.mostBusyMonth.bookingCount}</Badge>
+                            <Badge variant="outline" className="border-white/30 text-white">
+                                {yearStats.mostBusyMonth.bookingCount}
+                            </Badge>
                         </CardHeader>
                         <CardContent className="glass-card-content">
                             <div className="text-lg font-bold">{yearStats.mostBusyMonth.monthName}</div>

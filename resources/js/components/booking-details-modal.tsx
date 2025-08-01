@@ -40,8 +40,8 @@ interface CalendarDay {
     isPartiallyBooked?: boolean;
     isFullyBooked?: boolean;
     isFullyOccupied?: boolean;
-    leftHalf?: 'arrival' | 'occupied' | 'free';
-    rightHalf?: 'departure' | 'occupied' | 'free';
+    leftHalf?: 'occupied' | 'free';
+    rightHalf?: 'occupied' | 'free';
 }
 
 interface BookingDetailsModalProps {
@@ -56,6 +56,10 @@ export default function BookingDetailsModal({ isOpen, onOpenChange, selectedDay,
     if (!selectedDay || !selectedDay.hasBookings) {
         return null;
     }
+
+    // Debug-Logging
+    console.log('BookingDetailsModal - selectedDay:', selectedDay);
+    console.log('BookingDetailsModal - bookings:', selectedDay.bookings);
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -77,6 +81,37 @@ export default function BookingDetailsModal({ isOpen, onOpenChange, selectedDay,
                 return 'bg-red-100 text-red-800 border-red-200';
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200';
+        }
+    };
+
+    const formatDateRange = (booking: any) => {
+        if (booking.date_range) {
+            return booking.date_range;
+        }
+        
+        try {
+            const startDate = new Date(booking.start_datum);
+            const endDate = new Date(booking.end_datum);
+            return `${startDate.toLocaleDateString('de-DE')} - ${endDate.toLocaleDateString('de-DE')}`;
+        } catch (error) {
+            console.error('Error formatting date range:', error);
+            return 'Datum nicht verfügbar';
+        }
+    };
+
+    const calculateDuration = (booking: any) => {
+        if (booking.duration) {
+            return booking.duration;
+        }
+        
+        try {
+            const startDate = new Date(booking.start_datum);
+            const endDate = new Date(booking.end_datum);
+            const duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+            return duration;
+        } catch (error) {
+            console.error('Error calculating duration:', error);
+            return 1;
         }
     };
 
@@ -116,14 +151,16 @@ export default function BookingDetailsModal({ isOpen, onOpenChange, selectedDay,
                                 <div className="flex items-center gap-2">
                                     <CalendarDays className="h-4 w-4 text-gray-500" />
                                     <span className="font-medium">Zeitraum:</span>
-                                    <span>{booking.date_range}</span>
+                                    <span>
+                                        {formatDateRange(booking)}
+                                    </span>
                                 </div>
 
                                 <div className="flex items-center gap-2">
                                     <Clock className="h-4 w-4 text-gray-500" />
                                     <span className="font-medium">Dauer:</span>
                                     <span>
-                                        {booking.duration} Tag{booking.duration !== 1 ? 'e' : ''}
+                                        {calculateDuration(booking)} Tag{calculateDuration(booking) !== 1 ? 'e' : ''}
                                     </span>
                                 </div>
 

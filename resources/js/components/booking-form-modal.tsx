@@ -4,8 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from '@inertiajs/react';
-import { CalendarDays, Users, FileText, Clock } from 'lucide-react';
-import React, { useState } from 'react';
+import { CalendarDays, Clock, FileText, Users } from 'lucide-react';
+import React from 'react';
 
 interface BookingFormModalProps {
     isOpen: boolean;
@@ -18,26 +18,11 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
     const { data, setData, post, processing, errors, reset } = useForm({
         titel: '',
         beschreibung: '',
-        start_datum: '',
+        start_datum: initialDate,
         end_datum: '',
         gast_anzahl: 1,
-        anreise_zeit: 'afternoon',
+        anreise_zeit: initialTime,
     });
-
-    // Update form data when modal opens with initial values
-    React.useEffect(() => {
-        if (isOpen && initialDate) {
-            console.log('Setting initial date:', initialDate, 'time:', initialTime); // Debug
-            setData({
-                titel: '',
-                beschreibung: '',
-                start_datum: initialDate,
-                end_datum: '',
-                gast_anzahl: 1,
-                anreise_zeit: initialTime,
-            });
-        }
-    }, [isOpen, initialDate, initialTime]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -60,6 +45,21 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
         reset();
         onClose();
     };
+
+    // Update form data when modal opens with initial values
+    React.useEffect(() => {
+        if (isOpen && initialDate) {
+            console.log('Setting initial date:', initialDate, 'time:', initialTime); // Debug
+            setData({
+                titel: '',
+                beschreibung: '',
+                start_datum: initialDate,
+                end_datum: '',
+                gast_anzahl: 1,
+                anreise_zeit: initialTime,
+            });
+        }
+    }, [isOpen, initialDate, initialTime, setData]);
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
