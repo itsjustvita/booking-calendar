@@ -3,8 +3,8 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { BookOpen, Calendar, Folder, LayoutGrid, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -12,6 +12,24 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
+    },
+    {
+        title: 'Jahreskalender',
+        href: '/year-calendar',
+        icon: Calendar,
+    },
+    {
+        title: 'Buchungsübersicht',
+        href: '/booking-overview',
+        icon: BookOpen,
+    },
+];
+
+const adminNavItems: NavItem[] = [
+    {
+        title: 'Benutzerverwaltung',
+        href: '/admin/users',
+        icon: Users,
     },
 ];
 
@@ -29,6 +47,9 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage().props;
+    const isAdmin = auth?.user?.role === 'admin';
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -45,6 +66,13 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
+
+                {isAdmin && (
+                    <div className="px-2 py-0">
+                        <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">Administration</div>
+                        <NavMain items={adminNavItems} />
+                    </div>
+                )}
             </SidebarContent>
 
             <SidebarFooter>

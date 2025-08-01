@@ -13,8 +13,16 @@ class DashboardController extends Controller
 {
     public function index(Request $request): Response
     {
-        $year = $request->get('year', now()->year);
-        $month = $request->get('month', now()->month);
+        $year = (int) $request->get('year', Carbon::now()->year);
+        $month = (int) $request->get('month', Carbon::now()->month);
+
+        // Ensure valid month and year
+        if ($month < 1 || $month > 12) {
+            $month = Carbon::now()->month;
+        }
+        if ($year < 2020 || $year > 2030) {
+            $year = Carbon::now()->year;
+        }
 
         $date = Carbon::createFromDate($year, $month, 1);
         $startOfMonth = $date->copy()->startOfMonth();
@@ -53,8 +61,8 @@ class DashboardController extends Controller
             ->whereMonth('start_datum', $month)
             ->sum('gast_anzahl');
 
-        $upcomingBookings = Booking::where('start_datum', '>=', now())
-            ->where('start_datum', '<=', now()->addDays(30))
+        $upcomingBookings = Booking::where('start_datum', '>=', Carbon::now())
+            ->where('start_datum', '<=', Carbon::now()->addDays(30))
             ->count();
 
         // Create calendar days
@@ -136,6 +144,10 @@ class DashboardController extends Controller
             $isDepartureDay = $bookings->contains(function ($booking) use ($currentDay) {
                 return Carbon::parse($booking->end_datum)->isSameDay($currentDay);
             });
+
+            // Initialisiere die Tageshälften
+            $leftHalf = 'free';
+            $rightHalf = 'free';
 
             // Korrigierte Logik für die Tageshälften
             if ($isArrivalDay && $isDepartureDay) {

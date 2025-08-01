@@ -11,7 +11,7 @@ use Illuminate\Notifications\Notifiable;
 enum UserRole: string
 {
     case ADMIN = 'admin';
-    case GUEST = 'guest';
+    case USER = 'user';
 }
 
 class User extends Authenticatable
@@ -29,6 +29,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'is_active',
     ];
 
     /**
@@ -52,6 +53,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'is_active' => 'boolean',
         ];
     }
 
@@ -72,11 +74,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is guest
+     * Check if user is active
      */
-    public function isGuest(): bool
+    public function isActive(): bool
     {
-        return $this->role === UserRole::GUEST;
+        return $this->is_active;
     }
 
     /**
@@ -86,7 +88,23 @@ class User extends Authenticatable
     {
         return match($this->role) {
             UserRole::ADMIN => 'Administrator',
-            UserRole::GUEST => 'Gast',
+            UserRole::USER => 'Benutzer',
         };
+    }
+
+    /**
+     * Scope to get only active users
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope to get only inactive users
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('is_active', false);
     }
 }

@@ -86,7 +86,7 @@ interface YearCalendarPageProps extends SharedData {
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Jahreskalender',
-        href: '/kalender',
+        href: '/year-calendar',
     },
 ];
 
@@ -233,11 +233,11 @@ export default function YearCalendar() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                            <Link href={`/kalender?year=${previousYear}`} className="rounded p-1 text-white hover:bg-white/20">
+                            <Link href={`/year-calendar?year=${previousYear}`} className="rounded p-1 text-white hover:bg-white/20">
                                 <ChevronLeft className="h-5 w-5" />
                             </Link>
                             <h1 className="glass-heading text-3xl font-bold">Kalender {year}</h1>
-                            <Link href={`/kalender?year=${nextYear}`} className="rounded p-1 text-white hover:bg-white/20">
+                            <Link href={`/year-calendar?year=${nextYear}`} className="rounded p-1 text-white hover:bg-white/20">
                                 <ChevronRight className="h-5 w-5" />
                             </Link>
                         </div>

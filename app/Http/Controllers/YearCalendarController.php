@@ -49,8 +49,8 @@ class YearCalendarController extends Controller
                         'name' => $booking->user->name,
                         'email' => $booking->user->email,
                     ],
-                    'can_edit' => auth()->user()->can('update', $booking),
-                    'can_delete' => auth()->user()->can('delete', $booking),
+                    'can_edit' => auth()->user() ? auth()->user()->can('update', $booking) : false,
+                    'can_delete' => auth()->user() ? auth()->user()->can('delete', $booking) : false,
                 ];
             });
 

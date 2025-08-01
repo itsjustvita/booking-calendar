@@ -145,7 +145,10 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
     // Debug-Logs
     console.log('Dashboard Data:', dashboardData);
     console.log('Calendar Days:', dashboardData.calendarData.days);
-    console.log('Days with bookings:', dashboardData.calendarData.days.filter(day => day.hasBookings));
+    console.log(
+        'Days with bookings:',
+        dashboardData.calendarData.days.filter((day) => day.hasBookings),
+    );
 
     const handleDayClick = (day: CalendarDay, event: React.MouseEvent<HTMLButtonElement>) => {
         console.log('Day clicked:', day); // Debug
@@ -166,24 +169,28 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
     };
 
     const handlePrevMonth = () => {
-        const currentDate = new Date(dashboardData.currentYear, new Date(dashboardData.currentMonth + ' 1, 2024').getMonth() - 1);
+        const currentMonth = new Date(dashboardData.currentMonth + ' 1, ' + dashboardData.currentYear);
+        const prevMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
+
         router.get(
             '/dashboard',
             {
-                year: currentDate.getFullYear(),
-                month: currentDate.getMonth() + 1,
+                year: prevMonth.getFullYear(),
+                month: prevMonth.getMonth() + 1,
             },
             { preserveState: true },
         );
     };
 
     const handleNextMonth = () => {
-        const currentDate = new Date(dashboardData.currentYear, new Date(dashboardData.currentMonth + ' 1, 2024').getMonth() + 1);
+        const currentMonth = new Date(dashboardData.currentMonth + ' 1, ' + dashboardData.currentYear);
+        const nextMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+
         router.get(
             '/dashboard',
             {
-                year: currentDate.getFullYear(),
-                month: currentDate.getMonth() + 1,
+                year: nextMonth.getFullYear(),
+                month: nextMonth.getMonth() + 1,
             },
             { preserveState: true },
         );

@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Password settings',
+        title: 'Passwort-Einstellungen',
         href: '/settings/password',
     },
 ];
@@ -50,77 +50,90 @@ export default function Password() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Password settings" />
+            <Head title="Passwort-Einstellungen" />
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <HeadingSmall title="Update password" description="Ensure your account is using a long, random password to stay secure" />
+                    <HeadingSmall
+                        title="Passwort aktualisieren"
+                        description="Stellen Sie sicher, dass Ihr Account ein langes, zufälliges Passwort verwendet, um sicher zu bleiben"
+                    />
 
-                    <form onSubmit={updatePassword} className="space-y-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="current_password">Current password</Label>
+                    <div className="glass-card rounded-xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm">
+                        <form onSubmit={updatePassword} className="space-y-6">
+                            <div className="grid gap-2">
+                                <Label htmlFor="current_password" className="text-white">
+                                    Aktuelles Passwort
+                                </Label>
 
-                            <Input
-                                id="current_password"
-                                ref={currentPasswordInput}
-                                value={data.current_password}
-                                onChange={(e) => setData('current_password', e.target.value)}
-                                type="password"
-                                className="mt-1 block w-full"
-                                autoComplete="current-password"
-                                placeholder="Current password"
-                            />
+                                <Input
+                                    id="current_password"
+                                    ref={currentPasswordInput}
+                                    value={data.current_password}
+                                    onChange={(e) => setData('current_password', e.target.value)}
+                                    type="password"
+                                    className="mt-1 block w-full border-white/30 bg-white/20 text-white placeholder:text-white/70"
+                                    autoComplete="current-password"
+                                    placeholder="Aktuelles Passwort"
+                                />
 
-                            <InputError message={errors.current_password} />
-                        </div>
+                                <InputError message={errors.current_password} />
+                            </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">New password</Label>
+                            <div className="grid gap-2">
+                                <Label htmlFor="password" className="text-white">
+                                    Neues Passwort
+                                </Label>
 
-                            <Input
-                                id="password"
-                                ref={passwordInput}
-                                value={data.password}
-                                onChange={(e) => setData('password', e.target.value)}
-                                type="password"
-                                className="mt-1 block w-full"
-                                autoComplete="new-password"
-                                placeholder="New password"
-                            />
+                                <Input
+                                    id="password"
+                                    ref={passwordInput}
+                                    value={data.password}
+                                    onChange={(e) => setData('password', e.target.value)}
+                                    type="password"
+                                    className="mt-1 block w-full border-white/30 bg-white/20 text-white placeholder:text-white/70"
+                                    autoComplete="new-password"
+                                    placeholder="Neues Passwort"
+                                />
 
-                            <InputError message={errors.password} />
-                        </div>
+                                <InputError message={errors.password} />
+                            </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password_confirmation">Confirm password</Label>
+                            <div className="grid gap-2">
+                                <Label htmlFor="password_confirmation" className="text-white">
+                                    Passwort bestätigen
+                                </Label>
 
-                            <Input
-                                id="password_confirmation"
-                                value={data.password_confirmation}
-                                onChange={(e) => setData('password_confirmation', e.target.value)}
-                                type="password"
-                                className="mt-1 block w-full"
-                                autoComplete="new-password"
-                                placeholder="Confirm password"
-                            />
+                                <Input
+                                    id="password_confirmation"
+                                    value={data.password_confirmation}
+                                    onChange={(e) => setData('password_confirmation', e.target.value)}
+                                    type="password"
+                                    className="mt-1 block w-full border-white/30 bg-white/20 text-white placeholder:text-white/70"
+                                    autoComplete="new-password"
+                                    placeholder="Passwort bestätigen"
+                                />
 
-                            <InputError message={errors.password_confirmation} />
-                        </div>
+                                <InputError message={errors.password_confirmation} />
+                            </div>
 
-                        <div className="flex items-center gap-4">
-                            <Button disabled={processing}>Save password</Button>
+                            <div className="flex items-center gap-4">
+                                <Button disabled={processing} className="border-white/30 bg-white/20 text-white hover:bg-white/30">
+                                    Passwort speichern
+                                </Button>
 
-                            <Transition
-                                show={recentlySuccessful}
-                                enter="transition ease-in-out"
-                                enterFrom="opacity-0"
-                                leave="transition ease-in-out"
-                                leaveTo="opacity-0"
-                            >
-                                <p className="text-sm text-neutral-600">Saved</p>
-                            </Transition>
-                        </div>
-                    </form>
+                                <Transition
+                                    show={recentlySuccessful}
+                                    enter="transition ease-in-out"
+                                    enterFrom="opacity-0"
+                                    leave="transition ease-in-out"
+                                    leaveTo="opacity-0"
+                                >
+                                    <p className="text-sm text-white/80">Gespeichert</p>
+                                </Transition>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </SettingsLayout>
         </AppLayout>
