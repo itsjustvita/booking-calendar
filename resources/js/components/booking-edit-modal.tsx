@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import { useForm } from '@inertiajs/react';
 import { CalendarDays, Clock, FileText, Users } from 'lucide-react';
 import React from 'react';
@@ -117,7 +118,10 @@ export function BookingEditModal({ isOpen, onClose, booking }: BookingEditModalP
                                 onChange={(e) => setData('beschreibung', e.target.value)}
                                 placeholder="Zusätzliche Informationen zur Buchung..."
                                 rows={3}
-                                className={errors.beschreibung ? 'border-red-500' : ''}
+                                className={cn(
+                                    errors.beschreibung ? 'border-red-500' : '',
+                                    'border-white/20 bg-white/5 text-white placeholder:text-white/60',
+                                )}
                             />
                             {errors.beschreibung && <p className="mt-1 text-sm text-red-500">{errors.beschreibung}</p>}
                         </div>

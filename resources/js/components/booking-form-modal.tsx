@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import { useForm } from '@inertiajs/react';
 import { CalendarDays, Clock, FileText, Users } from 'lucide-react';
 import React from 'react';
@@ -75,11 +76,11 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 gap-5">
                         {/* Titel */}
                         <div>
-                            <Label htmlFor="titel" className="flex items-center gap-2 text-white">
-                                <FileText className="h-4 w-4" />
+                            <Label htmlFor="titel" className="mb-1 flex items-center gap-2 text-white">
+                                <FileText className="h-4 w-4 text-white/70" />
                                 Titel der Buchung
                             </Label>
                             <Input
@@ -94,7 +95,7 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
 
                         {/* Beschreibung */}
                         <div>
-                            <Label htmlFor="beschreibung" className="text-white">
+                            <Label htmlFor="beschreibung" className="mb-1 text-white">
                                 Beschreibung (optional)
                             </Label>
                             <Textarea
@@ -103,16 +104,19 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                                 onChange={(e) => setData('beschreibung', e.target.value)}
                                 placeholder="Zusätzliche Informationen zur Buchung..."
                                 rows={3}
-                                className={errors.beschreibung ? 'border-red-500' : ''}
+                                className={cn(
+                                    errors.beschreibung ? 'border-red-500' : '',
+                                    'border-white/20 bg-white/5 text-white placeholder:text-white/60',
+                                )}
                             />
                             {errors.beschreibung && <p className="mt-1 text-sm text-red-500">{errors.beschreibung}</p>}
                         </div>
 
                         {/* Datum-Bereich */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-5">
                             <div>
-                                <Label htmlFor="start_datum" className="flex items-center gap-2 text-white">
-                                    <CalendarDays className="h-4 w-4" />
+                                <Label htmlFor="start_datum" className="mb-1 flex items-center gap-2 text-white">
+                                    <CalendarDays className="h-4 w-4 text-white/70" />
                                     Anreisedatum
                                 </Label>
                                 <Input
@@ -126,7 +130,7 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                             </div>
 
                             <div>
-                                <Label htmlFor="end_datum" className="text-white">
+                                <Label htmlFor="end_datum" className="mb-1 text-white">
                                     Abreisedatum
                                 </Label>
                                 <Input
@@ -134,17 +138,17 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                                     type="date"
                                     value={data.end_datum}
                                     onChange={(e) => setData('end_datum', e.target.value)}
-                                    className={errors.end_datum ? 'border-red-500' : ''}
+                                    className={cn(errors.end_datum ? 'border-red-500' : '')}
                                 />
                                 {errors.end_datum && <p className="mt-1 text-sm text-red-500">{errors.end_datum}</p>}
                             </div>
                         </div>
 
                         {/* Anreisezeit und Gästeanzahl */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-5">
                             <div>
-                                <Label htmlFor="anreise_zeit" className="flex items-center gap-2 text-white">
-                                    <Clock className="h-4 w-4" />
+                                <Label htmlFor="anreise_zeit" className="mb-1 flex items-center gap-2 text-white">
+                                    <Clock className="h-4 w-4 text-white/70" />
                                     Anreisezeit
                                 </Label>
                                 <select
@@ -160,8 +164,8 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                             </div>
 
                             <div>
-                                <Label htmlFor="gast_anzahl" className="flex items-center gap-2 text-white">
-                                    <Users className="h-4 w-4" />
+                                <Label htmlFor="gast_anzahl" className="mb-1 flex items-center gap-2 text-white">
+                                    <Users className="h-4 w-4 text-white/70" />
                                     Anzahl Gäste
                                 </Label>
                                 <Input

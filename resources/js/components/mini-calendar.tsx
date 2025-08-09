@@ -70,21 +70,36 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
     };
 
     const handleDayButtonClick = (day: CalendarDay, event: React.MouseEvent<HTMLButtonElement>) => {
+        // Debug
+        console.log('MiniCalendar click', {
+            date: day.date,
+            hasBookings: day.hasBookings,
+            bookingsLen: day.bookings?.length,
+            left: day.leftHalf,
+            right: day.rightHalf,
+        });
+
+        // Wenn bereits Buchungen vorhanden sind, immer Details-Modal öffnen
+        if (day.hasBookings && day.bookings && day.bookings.length > 0) {
+            onDayClick(day, event);
+            return;
+        }
+
         // Bestimme basierend auf Klick-Position ob links oder rechts
         const rect = event.currentTarget.getBoundingClientRect();
         const clickX = event.clientX - rect.left;
         const buttonWidth = rect.width;
         const timeOfDay = clickX < buttonWidth / 2 ? 'morning' : 'afternoon';
 
-        const isHalfFree = (timeOfDay === 'morning' && day.leftHalf === 'free') || (timeOfDay === 'afternoon' && day.rightHalf === 'free');
-
-        if (isHalfFree && day.isCurrentMonth && onBookingFormOpen) {
-            // Öffne Buchungsformular mit vorausgefülltem Datum
+        // Nur wenn der Tag vollständig frei ist, das Formular öffnen
+        const isFullyFree = day.leftHalf === 'free' && day.rightHalf === 'free';
+        if (isFullyFree && day.isCurrentMonth && onBookingFormOpen) {
             onBookingFormOpen(day.date, timeOfDay);
-        } else {
-            // Rufe den ursprünglichen onDayClick für Buchungsdetails auf
-            onDayClick(day, event);
+            return;
         }
+
+        // Fallback: wenn nicht vollständig frei (z. B. teilweise belegt), Details öffnen
+        onDayClick(day, event);
     };
 
     // Offset für Monatsanfang berechnen
@@ -146,10 +161,10 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
                         }`}
                     >
                         {/* Left half - visuell */}
-                        <div className={cn(getHalfDayClasses(day.leftHalf, 'left'), 'rounded-l-md')} />
+                        <div className={cn(getHalfDayClasses(day.leftHalf, 'left'), 'pointer-events-none rounded-l-md')} />
 
                         {/* Right half - visuell */}
-                        <div className={cn(getHalfDayClasses(day.rightHalf, 'right'), 'rounded-r-md')} />
+                        <div className={cn(getHalfDayClasses(day.rightHalf, 'right'), 'pointer-events-none rounded-r-md')} />
 
                         {/* Day number - always on top */}
                         <span className="pointer-events-none relative z-10 text-xs font-semibold text-white">{day.day}</span>

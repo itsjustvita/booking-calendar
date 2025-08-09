@@ -21,8 +21,12 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
         @routes
-        @viteReactRefresh
-        @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        @env('testing')
+            {{-- In Tests keine Vite-Assets laden, um das Manifest zu vermeiden --}}
+        @else
+            @viteReactRefresh
+            @vite(['resources/js/app.tsx'])
+        @endenv
         @inertiaHead
     </head>
     <body class="font-sans antialiased">

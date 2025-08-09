@@ -174,6 +174,7 @@ class DashboardController extends Controller
                     'user' => [
                         'id' => $b->user->id,
                         'name' => $b->user->name,
+                        'email' => $b->user->email,
                     ],
                 ];
             });
@@ -283,7 +284,7 @@ class DashboardController extends Controller
                 $rightHalf = 'occupied';
             }
 
-            // Convert bookings to array with necessary data
+            // Convert bookings to array with necessary data (reindex keys!)
             $bookingsArray = $dayBookings->map(function ($booking) {
                 $startDate = Carbon::parse($booking->start_datum);
                 $endDate = Carbon::parse($booking->end_datum);
@@ -308,7 +309,7 @@ class DashboardController extends Controller
                     'can_edit' => auth()->user() ? auth()->user()->can('update', $booking) : false,
                     'can_delete' => auth()->user() ? auth()->user()->can('delete', $booking) : false,
                 ];
-            })->toArray();
+            })->values()->toArray();
 
             $days[] = [
                 'date' => $currentDay->format('Y-m-d'),

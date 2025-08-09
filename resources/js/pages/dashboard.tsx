@@ -8,6 +8,24 @@ import { Head, router } from '@inertiajs/react';
 import { Calendar, Clock, Cloud, MapPin, TrendingUp, Users } from 'lucide-react';
 import { useState } from 'react';
 
+type HalfState = 'occupied' | 'free';
+
+interface CalendarDayBooking {
+    id: number;
+    titel: string;
+    beschreibung?: string;
+    start_datum: string;
+    end_datum: string;
+    gast_anzahl: number;
+    status: string;
+    status_name: string;
+    duration: number;
+    date_range: string;
+    user: { id: number; name: string; email: string };
+    can_edit: boolean;
+    can_delete: boolean;
+}
+
 interface CalendarDay {
     date: string;
     day: number;
@@ -15,13 +33,23 @@ interface CalendarDay {
     isCurrentMonth: boolean;
     isToday: boolean;
     isWeekend: boolean;
-    bookings: any[];
+    bookings: CalendarDayBooking[];
     hasBookings: boolean;
     isArrivalDay: boolean;
     isDepartureDay: boolean;
     isFullyOccupied: boolean;
-    leftHalf: string;
-    rightHalf: string;
+    leftHalf: HalfState;
+    rightHalf: HalfState;
+}
+
+interface UpcomingBooking {
+    id: number;
+    titel: string;
+    gast_anzahl: number;
+    status: string;
+    status_name: string;
+    date_range: string;
+    user: { id: number; name: string; email: string };
 }
 
 interface DashboardData {
@@ -37,6 +65,7 @@ interface DashboardData {
         upcomingBookings: number;
         monthlyRevenue: number;
     };
+    upcomingList?: UpcomingBooking[];
 }
 
 interface WeatherLocation {
@@ -77,18 +106,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// Deutsche Datumsformatierung
-const formatGermanDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('de-DE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-    });
-};
+// (helper entfernt; nicht genutzt)
 
 // Wetter-Widget Komponente
-const WeatherWidget = ({ weatherLocation, weatherData }: { weatherLocation: WeatherLocation; weatherData?: WeatherData }) => {
+const WeatherWidget = ({ weatherData }: { weatherData?: WeatherData }) => {
     if (!weatherData) {
         return (
             <Card className="glass-card">
@@ -154,8 +175,7 @@ const WeatherWidget = ({ weatherLocation, weatherData }: { weatherLocation: Weat
     );
 };
 
-export default function Dashboard({ dashboardData, weatherLocation, weatherData }: Props) {
-    const [selectedBooking, setSelectedBooking] = useState<any>(null);
+export default function Dashboard({ dashboardData, weatherData }: Props) {
     const [showBookingModal, setShowBookingModal] = useState(false);
     const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
 
@@ -172,16 +192,24 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
         dashboardData.calendarData.days.filter((day) => day.hasBookings),
     );
 
-    const handleDayClick = (day: CalendarDay, event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleDayClick = (day: CalendarDay) => {
         console.log('Day clicked:', day); // Debug
         console.log('Has bookings:', day.hasBookings); // Debug
-        console.log('Bookings:', day.bookings); // Debug
+        console.log('Bookings:', Array.isArray(day.bookings) ? day.bookings : Object.values(day.bookings || {})); // Debug
 
-        if (day.hasBookings && day.bookings.length > 0) {
-            console.log('Setting booking:', day.bookings[0]); // Debug
-            setSelectedDay(day);
-            setShowBookingModal(true);
-        }
+        // Normalize bookings to array
+        const normalizedBookings = Array.isArray(day.bookings) ? day.bookings : Object.values(day.bookings || {});
+
+        // Normalize object and open modal
+        const normalized: CalendarDay = {
+            ...day,
+            bookings: normalizedBookings as CalendarDayBooking[],
+            hasBookings: normalizedBookings.length > 0,
+            leftHalf: (day as unknown as { leftHalf?: HalfState }).leftHalf ?? 'occupied',
+            rightHalf: (day as unknown as { rightHalf?: HalfState }).rightHalf ?? 'occupied',
+        } as CalendarDay;
+        setSelectedDay(normalized);
+        setTimeout(() => setShowBookingModal(true), 0);
     };
 
     const handleBookingFormOpen = (date: string, timeOfDay: 'morning' | 'afternoon') => {
@@ -218,12 +246,12 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
         );
     };
 
-    const handleEditBooking = (booking: any) => {
+    const handleEditBooking = (booking: CalendarDayBooking | UpcomingBooking) => {
         // TODO: Implementiere Bearbeitung
         console.log('Edit booking:', booking);
     };
 
-    const handleDeleteBooking = (booking: any) => {
+    const handleDeleteBooking = (booking: CalendarDayBooking | UpcomingBooking) => {
         // TODO: Implementiere Löschung
         console.log('Delete booking:', booking);
     };
@@ -294,7 +322,7 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
                         <MiniCalendar
                             currentMonth={dashboardData.currentMonth}
                             calendarData={dashboardData.calendarData}
-                            onDayClick={handleDayClick}
+                            onDayClick={(day) => handleDayClick(day as unknown as CalendarDay)}
                             onPrevMonth={handlePrevMonth}
                             onNextMonth={handleNextMonth}
                             onBookingFormOpen={handleBookingFormOpen}
@@ -304,7 +332,7 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
                     {/* Wetter-Widget */}
                     <div className="flex w-full flex-col">
                         <div className="flex h-full flex-col">
-                            <WeatherWidget weatherLocation={weatherLocation} weatherData={weatherData} />
+                            <WeatherWidget weatherData={weatherData} />
                         </div>
                     </div>
                 </div>
@@ -317,33 +345,41 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
                     <CardContent className="glass-card-content">
                         <div className="space-y-3">
                             {dashboardData.upcomingList && dashboardData.upcomingList.length > 0 ? (
-                                dashboardData.upcomingList.map((b) => (
+                                dashboardData.upcomingList.map((b: UpcomingBooking) => (
                                     <button
                                         key={b.id}
                                         className="glass-mini-card flex w-full items-center justify-between p-3 text-left"
                                         onClick={() => {
                                             // Öffne Details-Modal analog zur Kalenderlogik
                                             const mockDay = {
-                                                date: b.date_range.split(' - ')[0] || new Date().toISOString().slice(0, 10),
+                                                date: new Date().toISOString().slice(0, 10),
                                                 bookings: [
                                                     {
                                                         id: b.id,
                                                         titel: b.titel,
                                                         beschreibung: '',
-                                                        start_datum: '',
-                                                        end_datum: '',
+                                                        start_datum: new Date().toISOString().slice(0, 10),
+                                                        end_datum: new Date().toISOString().slice(0, 10),
                                                         gast_anzahl: b.gast_anzahl,
                                                         status: b.status,
                                                         status_name: b.status_name,
                                                         duration: 1,
                                                         date_range: b.date_range,
-                                                        user: { id: 0, name: '', email: '' },
+                                                        user: { id: b.user.id, name: b.user.name, email: b.user.email },
                                                         can_edit: false,
                                                         can_delete: false,
                                                     },
                                                 ],
                                                 hasBookings: true,
-                                            } as any;
+                                                isCurrentMonth: true,
+                                                isToday: false,
+                                                isWeekend: false,
+                                                isArrivalDay: false,
+                                                isDepartureDay: false,
+                                                isFullyOccupied: false,
+                                                leftHalf: 'occupied',
+                                                rightHalf: 'occupied',
+                                            } as CalendarDay;
                                             setSelectedDay(mockDay);
                                             setShowBookingModal(true);
                                         }}
@@ -351,6 +387,16 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
                                         <div>
                                             <p className="font-medium text-white">{b.titel}</p>
                                             <p className="text-sm text-white/70">{b.date_range}</p>
+                                            <div className="mt-1 flex items-center gap-2 text-xs text-white/70">
+                                                <span className="font-medium text-white">Gebucht von:</span>
+                                                <span>{b.user.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs text-white/70">
+                                                <span className="font-medium text-white">E-Mail:</span>
+                                                <a href={`mailto:${b.user.email}`} className="text-blue-300 hover:underline">
+                                                    {b.user.email}
+                                                </a>
+                                            </div>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-sm font-medium text-white">{b.gast_anzahl} Gäste</p>

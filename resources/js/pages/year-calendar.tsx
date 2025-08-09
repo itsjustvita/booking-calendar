@@ -91,17 +91,16 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function YearCalendar() {
-    const { year, monthsData, allBookings, yearStats, previousYear, nextYear } = usePage<YearCalendarPageProps>().props;
-    const [selectedBooking, setSelectedBooking] = useState<any>(null);
+    const { year, monthsData, yearStats, previousYear, nextYear } = usePage<YearCalendarPageProps>().props;
     const [showBookingModal, setShowBookingModal] = useState(false);
-    const [selectedDay, setSelectedDay] = useState<any>(null);
+    const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
 
     // State für Buchungsformular
     const [showBookingForm, setShowBookingForm] = useState(false);
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [selectedTime, setSelectedTime] = useState<'morning' | 'afternoon'>('afternoon');
 
-    const handleDayClick = (day: any) => {
+    const handleDayClick = (day: CalendarDay) => {
         console.log('Year calendar day clicked:', day); // Debug
         if (day.hasBookings) {
             console.log('Setting selected day:', day); // Debug
@@ -110,7 +109,7 @@ export default function YearCalendar() {
         }
     };
 
-    const handleDayButtonClick = (day: any, event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleDayButtonClick = (day: CalendarDay, event: React.MouseEvent<HTMLButtonElement>) => {
         // Bestimme basierend auf Klick-Position ob links oder rechts
         const rect = event.currentTarget.getBoundingClientRect();
         const clickX = event.clientX - rect.left;
@@ -150,12 +149,7 @@ export default function YearCalendar() {
         }
     };
 
-    const getDayClasses = (day: CalendarDay) => {
-        return cn('relative h-6 w-6 cursor-pointer border border-gray-200 transition-all hover:scale-110', {
-            'opacity-40': !day.isCurrentMonth,
-            'ring-2 ring-blue-500 ring-offset-1': day.isToday,
-        });
-    };
+    // Hinweis: getDayClasses aktuell ungenutzt – visuelle Klassen direkt im Button
 
     const renderMonth = (monthData: MonthData) => {
         // Offset für Monatsanfang berechnen
@@ -226,7 +220,7 @@ export default function YearCalendar() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Jahreskalender ${year}`} />
+            <Head title={`${year}`} />
 
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-6">
                 {/* Header with year navigation and stats */}
@@ -236,7 +230,7 @@ export default function YearCalendar() {
                             <Link href={`/year-calendar?year=${previousYear}`} className="rounded p-1 text-white hover:bg-white/20">
                                 <ChevronLeft className="h-5 w-5" />
                             </Link>
-                            <h1 className="glass-heading text-3xl font-bold">Kalender {year}</h1>
+                            <h1 className="glass-heading text-3xl font-bold">{year}</h1>
                             <Link href={`/year-calendar?year=${nextYear}`} className="rounded p-1 text-white hover:bg-white/20">
                                 <ChevronRight className="h-5 w-5" />
                             </Link>
@@ -304,8 +298,8 @@ export default function YearCalendar() {
                     </Card>
                 </div>
 
-                {/* Legend */}
-                <Card className="glass-card">
+                {/* Legend (nach unten verschoben) */}
+                <Card className="glass-card order-last">
                     <CardHeader className="glass-card-header">
                         <CardTitle className="glass-card-title text-lg">Legende</CardTitle>
                     </CardHeader>
