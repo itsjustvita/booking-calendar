@@ -93,7 +93,7 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
     const offset = weekdayOrder.indexOf(firstDayOfWeek);
 
     return (
-        <div className="glass-card rounded-lg p-4">
+        <div className="glass-card h-full rounded-lg p-4">
             {/* Header mit Navigation */}
             <div className="mb-4 flex items-center justify-between">
                 <Button variant="ghost" size="sm" onClick={onPrevMonth} className="h-8 w-8 p-0 text-white hover:bg-white/20 hover:text-white">

@@ -19,7 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/year-calendar', [YearCalendarController::class, 'index'])->name('year-calendar');
     Route::get('/booking-overview', [BookingOverviewController::class, 'index'])->name('booking-overview');
 
-    // Booking routes
+    // Booking routes mit Policy-Autorisierung in Controller-Methoden
     Route::resource('bookings', BookingController::class);
 });
 

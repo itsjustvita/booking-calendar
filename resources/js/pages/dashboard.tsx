@@ -48,12 +48,20 @@ interface WeatherLocation {
     };
 }
 
+interface WeatherForecastDay {
+    date: string;
+    dayName: string; // kurz (z.B. Mo., Di.)
+    temperature: number;
+    description: string;
+}
+
 interface WeatherData {
     temperature: number;
     description: string;
     humidity: number;
     windSpeed: number;
     location: string;
+    forecast?: WeatherForecastDay[];
 }
 
 interface Props {
@@ -109,7 +117,7 @@ const WeatherWidget = ({ weatherLocation, weatherData }: { weatherLocation: Weat
                 </CardTitle>
             </CardHeader>
             <CardContent className="glass-card-content">
-                <div className="space-y-3">
+                <div className="space-y-4">
                     <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-white/70" />
                         <span className="text-sm text-white/80">{weatherData.location}</span>
@@ -126,6 +134,20 @@ const WeatherWidget = ({ weatherLocation, weatherData }: { weatherLocation: Weat
                             <div className="font-medium">{weatherData.windSpeed} km/h</div>
                         </div>
                     </div>
+                    {weatherData.forecast && weatherData.forecast.length > 0 && (
+                        <div className="mt-2">
+                            <div className="mb-2 text-sm font-medium text-white/80">Nächste 3 Tage</div>
+                            <div className="grid grid-cols-3 gap-2">
+                                {weatherData.forecast.map((day) => (
+                                    <div key={day.date} className="glass-mini-card rounded-md p-2 text-center">
+                                        <div className="text-xs text-white/70">{day.dayName}</div>
+                                        <div className="text-lg font-semibold text-white">{day.temperature}°C</div>
+                                        <div className="text-[10px] text-white/70">{day.description}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>
@@ -218,8 +240,8 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
                 </div>
 
                 {/* Statistiken */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card className="glass-card">
+                <div className="grid items-stretch gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <Card className="glass-card h-full">
                         <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="glass-card-title text-sm font-medium">Gesamtbuchungen</CardTitle>
                             <Calendar className="h-4 w-4 text-white/70" />
@@ -230,7 +252,7 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
                         </CardContent>
                     </Card>
 
-                    <Card className="glass-card">
+                    <Card className="glass-card h-full">
                         <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="glass-card-title text-sm font-medium">Gäste</CardTitle>
                             <Users className="h-4 w-4 text-white/70" />
@@ -241,7 +263,7 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
                         </CardContent>
                     </Card>
 
-                    <Card className="glass-card">
+                    <Card className="glass-card h-full">
                         <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="glass-card-title text-sm font-medium">Anstehende Buchungen</CardTitle>
                             <Clock className="h-4 w-4 text-white/70" />
@@ -252,7 +274,7 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
                         </CardContent>
                     </Card>
 
-                    <Card className="glass-card">
+                    <Card className="glass-card h-full">
                         <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="glass-card-title text-sm font-medium">Auslastung</CardTitle>
                             <TrendingUp className="h-4 w-4 text-white/70" />
@@ -266,9 +288,9 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
                     </Card>
                 </div>
 
-                {/* Mini-Kalender und Wetter */}
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    <div className="lg:col-span-2">
+                {/* Mini-Kalender und Wetter: je 50% Breite in Reihe 2 */}
+                <div className="grid items-stretch gap-6 md:grid-cols-2">
+                    <div className="flex w-full flex-col">
                         <MiniCalendar
                             currentMonth={dashboardData.currentMonth}
                             calendarData={dashboardData.calendarData}
@@ -280,7 +302,11 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
                     </div>
 
                     {/* Wetter-Widget */}
-                    <WeatherWidget weatherLocation={weatherLocation} weatherData={weatherData} />
+                    <div className="flex w-full flex-col">
+                        <div className="flex h-full flex-col">
+                            <WeatherWidget weatherLocation={weatherLocation} weatherData={weatherData} />
+                        </div>
+                    </div>
                 </div>
 
                 {/* Kommende Buchungen */}
@@ -290,22 +316,49 @@ export default function Dashboard({ dashboardData, weatherLocation, weatherData 
                     </CardHeader>
                     <CardContent className="glass-card-content">
                         <div className="space-y-3">
-                            {dashboardData.calendarData.days
-                                .filter((day) => day.hasBookings && new Date(day.date) >= new Date())
-                                .slice(0, 5)
-                                .map((day) => (
-                                    <div key={day.date} className="glass-mini-card flex items-center justify-between p-3">
+                            {dashboardData.upcomingList && dashboardData.upcomingList.length > 0 ? (
+                                dashboardData.upcomingList.map((b) => (
+                                    <button
+                                        key={b.id}
+                                        className="glass-mini-card flex w-full items-center justify-between p-3 text-left"
+                                        onClick={() => {
+                                            // Öffne Details-Modal analog zur Kalenderlogik
+                                            const mockDay = {
+                                                date: b.date_range.split(' - ')[0] || new Date().toISOString().slice(0, 10),
+                                                bookings: [
+                                                    {
+                                                        id: b.id,
+                                                        titel: b.titel,
+                                                        beschreibung: '',
+                                                        start_datum: '',
+                                                        end_datum: '',
+                                                        gast_anzahl: b.gast_anzahl,
+                                                        status: b.status,
+                                                        status_name: b.status_name,
+                                                        duration: 1,
+                                                        date_range: b.date_range,
+                                                        user: { id: 0, name: '', email: '' },
+                                                        can_edit: false,
+                                                        can_delete: false,
+                                                    },
+                                                ],
+                                                hasBookings: true,
+                                            } as any;
+                                            setSelectedDay(mockDay);
+                                            setShowBookingModal(true);
+                                        }}
+                                    >
                                         <div>
-                                            <p className="font-medium text-white">{day.bookings[0]?.titel || 'Buchung'}</p>
-                                            <p className="text-sm text-white/70">{formatGermanDate(day.date)}</p>
+                                            <p className="font-medium text-white">{b.titel}</p>
+                                            <p className="text-sm text-white/70">{b.date_range}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-sm font-medium text-white">{day.bookings[0]?.gast_anzahl || 0} Gäste</p>
-                                            <p className="text-xs text-white/70">{day.bookings[0]?.status_name || 'Unbekannt'}</p>
+                                            <p className="text-sm font-medium text-white">{b.gast_anzahl} Gäste</p>
+                                            <p className="text-xs text-white/70">{b.status_name}</p>
                                         </div>
-                                    </div>
-                                ))}
-                            {dashboardData.calendarData.days.filter((day) => day.hasBookings && new Date(day.date) >= new Date()).length === 0 && (
+                                    </button>
+                                ))
+                            ) : (
                                 <p className="py-4 text-center text-white/70">Keine kommenden Buchungen</p>
                             )}
                         </div>

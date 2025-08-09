@@ -44,7 +44,7 @@ class BookingController extends Controller
             'status' => 'pending',
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Buchung erfolgreich erstellt!');
+        return redirect()->back()->with('success', 'Buchung erfolgreich erstellt!');
     }
 
     /**
@@ -87,7 +87,7 @@ class BookingController extends Controller
             'anreise_zeit' => $request->anreise_zeit,
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Buchung erfolgreich aktualisiert!');
+        return redirect()->back()->with('success', 'Buchung erfolgreich aktualisiert!');
     }
 
     /**
@@ -99,6 +99,6 @@ class BookingController extends Controller
 
         $booking->delete();
 
-        return redirect()->route('dashboard')->with('success', 'Buchung erfolgreich gelöscht!');
+        return redirect()->back()->with('success', 'Buchung erfolgreich gelöscht!');
     }
 }

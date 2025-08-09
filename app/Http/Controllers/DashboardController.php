@@ -6,6 +6,8 @@ use App\Models\Booking;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\App;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -87,14 +89,94 @@ class DashboardController extends Controller
             ]
         ]);
 
-        // Wetterdaten simulieren (in der realen Anwendung würde hier eine API aufgerufen werden)
-        $weatherData = [
-            'temperature' => rand(5, 25), // 5-25°C
-            'description' => ['Sonnig', 'Teilweise bewölkt', 'Bewölkt', 'Leichter Regen'][array_rand(['Sonnig', 'Teilweise bewölkt', 'Bewölkt', 'Leichter Regen'])],
-            'humidity' => rand(40, 80), // 40-80%
-            'windSpeed' => rand(5, 25), // 5-25 km/h
-            'location' => $weatherLocation['city'] . ', ' . $weatherLocation['country'],
-        ];
+        // Wetterdaten via Open-Meteo (kein API-Key erforderlich). In Tests kein Netzwerkzugriff.
+        $weatherData = Cache::remember(
+            'weather:' . $weatherLocation['coordinates']['lat'] . ':' . $weatherLocation['coordinates']['lon'],
+            now()->addMinutes(30),
+            function () use ($weatherLocation) {
+                if (App::environment('testing')) {
+                    return null;
+                }
+
+                try {
+                    $lat = $weatherLocation['coordinates']['lat'];
+                    $lon = $weatherLocation['coordinates']['lon'];
+                    $url = 'https://api.open-meteo.com/v1/forecast';
+                    $params = [
+                        'latitude' => $lat,
+                        'longitude' => $lon,
+                        'current' => 'temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code',
+                        'daily' => 'weather_code,temperature_2m_max,temperature_2m_min',
+                        'timezone' => 'auto',
+                    ];
+
+                    $response = Http::timeout(5)->retry(2, 200)->get($url, $params);
+                    if (!$response->successful()) {
+                        return null;
+                    }
+                    $data = $response->json();
+
+                    $current = $data['current'] ?? null;
+                    $daily = $data['daily'] ?? null;
+                    if (!$current || !$daily) {
+                        return null;
+                    }
+
+                    $location = $weatherLocation['city'] . ', ' . $weatherLocation['country'];
+
+                    // Forecast: nächste 3 Tage ab morgen
+                    $dates = $daily['time'] ?? [];
+                    $codes = $daily['weather_code'] ?? [];
+                    $tmax = $daily['temperature_2m_max'] ?? [];
+                    $forecast = [];
+                    for ($i = 1; $i <= 3; $i++) {
+                        if (!isset($dates[$i])) {
+                            break;
+                        }
+                        $date = Carbon::parse($dates[$i]);
+                        $forecast[] = [
+                            'date' => $date->format('Y-m-d'),
+                            'dayName' => $date->locale('de')->shortDayName,
+                            'temperature' => isset($tmax[$i]) ? (int) round($tmax[$i]) : null,
+                            'description' => isset($codes[$i]) ? self::mapWeatherCodeToGerman($codes[$i]) : '',
+                        ];
+                    }
+
+                    return [
+                        'temperature' => isset($current['temperature_2m']) ? (int) round($current['temperature_2m']) : null,
+                        'description' => isset($current['weather_code']) ? self::mapWeatherCodeToGerman($current['weather_code']) : '',
+                        'humidity' => isset($current['relative_humidity_2m']) ? (int) $current['relative_humidity_2m'] : null,
+                        'windSpeed' => isset($current['wind_speed_10m']) ? (int) round($current['wind_speed_10m']) : null,
+                        'location' => $location,
+                        'forecast' => $forecast,
+                    ];
+                } catch (\Throwable $e) {
+                    \Log::warning('Wetterdaten konnten nicht geladen werden', ['error' => $e->getMessage()]);
+                    return null;
+                }
+            }
+        );
+
+        // Liste kommender Buchungen (Titel, Gäste, Status) für das Dashboard
+        $upcomingList = Booking::with('user')
+            ->where('start_datum', '>=', Carbon::now())
+            ->orderBy('start_datum')
+            ->limit(5)
+            ->get()
+            ->map(function (Booking $b) {
+                return [
+                    'id' => $b->id,
+                    'titel' => $b->titel,
+                    'gast_anzahl' => $b->gast_anzahl,
+                    'status' => $b->status->value,
+                    'status_name' => $b->status_name,
+                    'date_range' => $b->date_range,
+                    'user' => [
+                        'id' => $b->user->id,
+                        'name' => $b->user->name,
+                    ],
+                ];
+            });
 
         return Inertia::render('dashboard', [
             'dashboardData' => [
@@ -110,10 +192,47 @@ class DashboardController extends Controller
                     'upcomingBookings' => $upcomingBookings,
                     'monthlyRevenue' => 0, // TODO: Calculate when pricing is implemented
                 ],
+                'upcomingList' => $upcomingList,
             ],
             'weatherLocation' => $weatherLocation,
             'weatherData' => $weatherData,
         ]);
+    }
+
+    private static function mapWeatherCodeToGerman(int $code): string
+    {
+        $map = [
+            0 => 'Klar',
+            1 => 'Überwiegend klar',
+            2 => 'Teilweise bewölkt',
+            3 => 'Bewölkt',
+            45 => 'Nebel',
+            48 => 'Reifiger Nebel',
+            51 => 'Leichter Nieselregen',
+            53 => 'Mäßiger Nieselregen',
+            55 => 'Starker Nieselregen',
+            56 => 'Leichter gefrierender Nieselregen',
+            57 => 'Starker gefrierender Nieselregen',
+            61 => 'Leichter Regen',
+            63 => 'Mäßiger Regen',
+            65 => 'Starker Regen',
+            66 => 'Leichter gefrierender Regen',
+            67 => 'Starker gefrierender Regen',
+            71 => 'Leichter Schneefall',
+            73 => 'Mäßiger Schneefall',
+            75 => 'Starker Schneefall',
+            77 => 'Schneekörner',
+            80 => 'Leichte Regenschauer',
+            81 => 'Mäßige Regenschauer',
+            82 => 'Heftige Regenschauer',
+            85 => 'Leichte Schneeschauer',
+            86 => 'Starke Schneeschauer',
+            95 => 'Gewitter',
+            96 => 'Gewitter mit leichtem Hagel',
+            99 => 'Gewitter mit starkem Hagel',
+        ];
+
+        return $map[$code] ?? 'Unbekannt';
     }
 
     private function generateCalendarDays($startOfMonth, $endOfMonth, $bookings)

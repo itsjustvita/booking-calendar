@@ -12,10 +12,7 @@ use Inertia\Response;
 
 class UserController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('admin');
-    }
+    // Admin-Absicherung erfolgt in den Routen über die Middleware-Gruppe ('admin').
 
     /**
      * Display a listing of the resource.

@@ -77,13 +77,13 @@ export default function BookingDetailsModal({ isOpen, onOpenChange, selectedDay,
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'confirmed':
-                return 'bg-green-100 text-green-800 border-green-200';
+                return 'bg-green-500/20 text-green-200 border-green-400/30';
             case 'pending':
-                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                return 'bg-yellow-500/20 text-yellow-200 border-yellow-400/30';
             case 'cancelled':
-                return 'bg-red-100 text-red-800 border-red-200';
+                return 'bg-red-500/20 text-red-200 border-red-400/30';
             default:
-                return 'bg-gray-100 text-gray-800 border-gray-200';
+                return 'bg-white/10 text-white/80 border-white/20';
         }
     };
 
@@ -141,13 +141,13 @@ export default function BookingDetailsModal({ isOpen, onOpenChange, selectedDay,
     return (
         <>
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
-                <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+                <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto border-white/20 bg-white/10 text-white shadow-lg shadow-black/20 backdrop-blur-xl">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
+                        <DialogTitle className="flex items-center gap-2 text-white">
                             <CalendarDays className="h-5 w-5" />
                             Buchungen am {formatDate(selectedDay.date)}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-white/80">
                             {selectedDay.bookings.length} Buchung{selectedDay.bookings.length !== 1 ? 'en' : ''}
                             {selectedDay.isArrivalDay && ' • Anreisetag'}
                             {selectedDay.isDepartureDay && ' • Abreisetag'}
@@ -156,12 +156,12 @@ export default function BookingDetailsModal({ isOpen, onOpenChange, selectedDay,
 
                     <div className="space-y-4">
                         {selectedDay.bookings.map((booking, index) => (
-                            <div key={booking.id} className="space-y-3 rounded-lg border p-4">
+                            <div key={booking.id} className="space-y-3 rounded-lg border border-white/20 bg-white/5 p-4">
                                 {/* Header with title and status */}
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-semibold">{booking.titel}</h3>
-                                        {booking.beschreibung && <p className="mt-1 text-sm text-gray-600">{booking.beschreibung}</p>}
+                                        <h3 className="text-lg font-semibold text-white">{booking.titel}</h3>
+                                        {booking.beschreibung && <p className="mt-1 text-sm text-white/80">{booking.beschreibung}</p>}
                                     </div>
                                     <Badge variant="outline" className={cn('ml-2', getStatusColor(booking.status))}>
                                         {booking.status_name}
@@ -173,38 +173,40 @@ export default function BookingDetailsModal({ isOpen, onOpenChange, selectedDay,
                                 {/* Booking details */}
                                 <div className="grid grid-cols-1 gap-3 text-sm">
                                     <div className="flex items-center gap-2">
-                                        <CalendarDays className="h-4 w-4 text-gray-500" />
-                                        <span className="font-medium">Zeitraum:</span>
-                                        <span>{formatDateRange(booking)}</span>
+                                        <CalendarDays className="h-4 w-4 text-white/70" />
+                                        <span className="font-medium text-white">Zeitraum:</span>
+                                        <span className="text-white/90">{formatDateRange(booking)}</span>
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        <Clock className="h-4 w-4 text-gray-500" />
-                                        <span className="font-medium">Dauer:</span>
-                                        <span>
+                                        <Clock className="h-4 w-4 text-white/70" />
+                                        <span className="font-medium text-white">Dauer:</span>
+                                        <span className="text-white/90">
                                             {calculateDuration(booking)} Tag{calculateDuration(booking) !== 1 ? 'e' : ''}
                                         </span>
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        <Users className="h-4 w-4 text-gray-500" />
-                                        <span className="font-medium">Anzahl Gäste:</span>
-                                        <span>
+                                        <Users className="h-4 w-4 text-white/70" />
+                                        <span className="font-medium text-white">Anzahl Gäste:</span>
+                                        <span className="text-white/90">
                                             {booking.gast_anzahl} Person{booking.gast_anzahl !== 1 ? 'en' : ''}
                                         </span>
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        <User className="h-4 w-4 text-gray-500" />
-                                        <span className="font-medium">Gebucht von:</span>
-                                        <span>{booking.user.name}</span>
+                                        <User className="h-4 w-4 text-white/70" />
+                                        <span className="font-medium text-white">Gebucht von:</span>
+                                        <span className="text-white/90">{booking.user.name}</span>
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        <Mail className="h-4 w-4 text-gray-500" />
-                                        <span className="font-medium">E-Mail:</span>
-                                        <span className="text-blue-600">
-                                            <a href={`mailto:${booking.user.email}`}>{booking.user.email}</a>
+                                        <Mail className="h-4 w-4 text-white/70" />
+                                        <span className="font-medium text-white">E-Mail:</span>
+                                        <span className="text-blue-300">
+                                            <a href={`mailto:${booking.user.email}`} className="hover:underline">
+                                                {booking.user.email}
+                                            </a>
                                         </span>
                                     </div>
                                 </div>
@@ -251,7 +253,7 @@ export default function BookingDetailsModal({ isOpen, onOpenChange, selectedDay,
                     </div>
 
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => onOpenChange(false)}>
+                        <Button variant="outline" onClick={() => onOpenChange(false)} className="border-white/30 text-white hover:bg-white/10">
                             Schließen
                         </Button>
                     </DialogFooter>
@@ -262,7 +264,15 @@ export default function BookingDetailsModal({ isOpen, onOpenChange, selectedDay,
             <BookingEditModal isOpen={showEditModal} onClose={handleEditClose} booking={selectedBooking} />
 
             {/* Delete Modal */}
-            <BookingDeleteModal isOpen={showDeleteModal} onClose={handleDeleteClose} booking={selectedBooking} />
+            <BookingDeleteModal
+                isOpen={showDeleteModal}
+                onClose={handleDeleteClose}
+                booking={selectedBooking}
+                onDeleted={() => {
+                    // Nach erfolgreicher Löschung schließe das Details-Modal und refreshe die Seite sanft
+                    onOpenChange(false);
+                }}
+            />
         </>
     );
 }

@@ -63,20 +63,22 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="border-white/20 bg-white/10 text-white backdrop-blur-xl sm:max-w-[600px]">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
+                    <DialogTitle className="flex items-center gap-2 text-white">
                         <CalendarDays className="h-5 w-5" />
                         Neue Buchung erstellen
                     </DialogTitle>
-                    <DialogDescription>Erstellen Sie eine neue Hüttenbuchung. Alle Felder sind erforderlich.</DialogDescription>
+                    <DialogDescription className="text-white/80">
+                        Erstellen Sie eine neue Hüttenbuchung. Alle Felder sind erforderlich.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 gap-4">
                         {/* Titel */}
                         <div>
-                            <Label htmlFor="titel" className="flex items-center gap-2">
+                            <Label htmlFor="titel" className="flex items-center gap-2 text-white">
                                 <FileText className="h-4 w-4" />
                                 Titel der Buchung
                             </Label>
@@ -92,7 +94,9 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
 
                         {/* Beschreibung */}
                         <div>
-                            <Label htmlFor="beschreibung">Beschreibung (optional)</Label>
+                            <Label htmlFor="beschreibung" className="text-white">
+                                Beschreibung (optional)
+                            </Label>
                             <Textarea
                                 id="beschreibung"
                                 value={data.beschreibung}
@@ -107,7 +111,7 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                         {/* Datum-Bereich */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <Label htmlFor="start_datum" className="flex items-center gap-2">
+                                <Label htmlFor="start_datum" className="flex items-center gap-2 text-white">
                                     <CalendarDays className="h-4 w-4" />
                                     Anreisedatum
                                 </Label>
@@ -122,7 +126,9 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                             </div>
 
                             <div>
-                                <Label htmlFor="end_datum">Abreisedatum</Label>
+                                <Label htmlFor="end_datum" className="text-white">
+                                    Abreisedatum
+                                </Label>
                                 <Input
                                     id="end_datum"
                                     type="date"
@@ -137,7 +143,7 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                         {/* Anreisezeit und Gästeanzahl */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <Label htmlFor="anreise_zeit" className="flex items-center gap-2">
+                                <Label htmlFor="anreise_zeit" className="flex items-center gap-2 text-white">
                                     <Clock className="h-4 w-4" />
                                     Anreisezeit
                                 </Label>
@@ -145,7 +151,7 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                                     id="anreise_zeit"
                                     value={data.anreise_zeit}
                                     onChange={(e) => setData('anreise_zeit', e.target.value as 'morning' | 'afternoon')}
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="flex h-10 w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-white ring-offset-background placeholder:text-white/60 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option value="afternoon">Nachmittags (Standard)</option>
                                     <option value="morning">Vormittags</option>
@@ -154,7 +160,7 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                             </div>
 
                             <div>
-                                <Label htmlFor="gast_anzahl" className="flex items-center gap-2">
+                                <Label htmlFor="gast_anzahl" className="flex items-center gap-2 text-white">
                                     <Users className="h-4 w-4" />
                                     Anzahl Gäste
                                 </Label>
@@ -173,7 +179,13 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={handleClose} disabled={processing}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleClose}
+                            disabled={processing}
+                            className="border-white/30 text-white hover:bg-white/10"
+                        >
                             Abbrechen
                         </Button>
                         <Button type="submit" disabled={processing} className="min-w-[120px]">

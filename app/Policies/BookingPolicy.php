@@ -12,7 +12,8 @@ class BookingPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        // Alle eingeloggten Nutzer dürfen die Liste (z. B. eigene Buchungen) sehen
+        return true;
     }
 
     /**

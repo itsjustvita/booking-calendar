@@ -15,7 +15,7 @@ class BookingsSeeder extends Seeder
      */
     public function run(): void
     {
-        $users = User::where('role', 'guest')->get();
+        $users = User::where('role', 'user')->get();
         
         if ($users->count() === 0) {
             $this->command->error('Keine Gast-User gefunden. Bitte zuerst GuestUsersSeeder ausführen.');
