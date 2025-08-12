@@ -60,8 +60,8 @@ export default function BookingOverview({ bookings, statistics, year, availableY
     const [selectedYear, setSelectedYear] = useState(year.toString());
 
     const breadcrumbs = [
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Buchungsübersicht', href: '#' },
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Buchungsübersicht', href: '#' },
     ];
 
     const handleYearChange = (newYear: string) => {
@@ -69,18 +69,7 @@ export default function BookingOverview({ bookings, statistics, year, availableY
         router.get(route('booking-overview'), { year: newYear });
     };
 
-    const getStatusBadgeVariant = (status: string) => {
-        switch (status) {
-            case 'confirmed':
-                return 'default';
-            case 'pending':
-                return 'secondary';
-            case 'cancelled':
-                return 'destructive';
-            default:
-                return 'outline';
-        }
-    };
+    // getStatusBadgeVariant nicht genutzt – Farbklassen werden über getStatusColor gesetzt
 
     const getStatusColor = (status: string) => {
         switch (status) {
