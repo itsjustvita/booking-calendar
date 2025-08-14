@@ -4,9 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { useForm } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { CalendarDays, Clock, FileText, Users } from 'lucide-react';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface BookingFormModalProps {
     isOpen: boolean;
@@ -16,7 +16,7 @@ interface BookingFormModalProps {
 }
 
 export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTime = 'afternoon' }: BookingFormModalProps) {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const [formData, setFormData] = useState({
         titel: '',
         beschreibung: '',
         start_datum: initialDate,
@@ -24,34 +24,60 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
         gast_anzahl: 1,
         anreise_zeit: initialTime,
     });
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsProcessing(true);
+        setErrors({});
 
-        console.log('Submitting booking form with data:', data); // Debug
+        console.log('Submitting booking form with data:', formData); // Debug
 
-        post('/bookings', {
-            onSuccess: () => {
-                console.log('Booking created successfully'); // Debug
-                reset();
-                onClose();
-            },
-            onError: (errors) => {
-                console.log('Booking creation failed:', errors); // Debug
-            },
-        });
+        try {
+            await router.post('/bookings', formData, {
+                onSuccess: () => {
+                    console.log('Booking created successfully'); // Debug
+                    resetForm();
+                    onClose();
+                },
+                onError: (errors) => {
+                    console.log('Booking creation failed:', errors); // Debug
+                    setErrors(errors);
+                },
+                onFinish: () => {
+                    setIsProcessing(false);
+                },
+            });
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            setIsProcessing(false);
+        }
     };
 
     const handleClose = () => {
-        reset();
+        resetForm();
         onClose();
     };
 
+    const resetForm = () => {
+        setFormData({
+            titel: '',
+            beschreibung: '',
+            start_datum: initialDate,
+            end_datum: '',
+            gast_anzahl: 1,
+            anreise_zeit: initialTime,
+        });
+        setErrors({});
+        setIsProcessing(false);
+    };
+
     // Update form data when modal opens with initial values
-    React.useEffect(() => {
+    useEffect(() => {
         if (isOpen && initialDate) {
             console.log('Setting initial date:', initialDate, 'time:', initialTime); // Debug
-            setData({
+            setFormData({
                 titel: '',
                 beschreibung: '',
                 start_datum: initialDate,
@@ -60,7 +86,22 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                 anreise_zeit: initialTime,
             });
         }
-    }, [isOpen, initialDate, initialTime, setData]);
+    }, [isOpen, initialDate, initialTime]);
+
+    const handleInputChange = (field: string, value: string | number) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+        
+        // Clear error when user starts typing
+        if (errors[field]) {
+            setErrors(prev => ({
+                ...prev,
+                [field]: ''
+            }));
+        }
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -85,8 +126,8 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                             </Label>
                             <Input
                                 id="titel"
-                                value={data.titel}
-                                onChange={(e) => setData('titel', e.target.value)}
+                                value={formData.titel}
+                                onChange={(e) => handleInputChange('titel', e.target.value)}
                                 placeholder="z.B. Familienwochenende, Geburtstagsfeier..."
                                 className={errors.titel ? 'border-red-500' : ''}
                             />
@@ -100,8 +141,8 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                             </Label>
                             <Textarea
                                 id="beschreibung"
-                                value={data.beschreibung}
-                                onChange={(e) => setData('beschreibung', e.target.value)}
+                                value={formData.beschreibung}
+                                onChange={(e) => handleInputChange('beschreibung', e.target.value)}
                                 placeholder="Zusätzliche Informationen zur Buchung..."
                                 rows={3}
                                 className={cn(
@@ -122,8 +163,8 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                                 <Input
                                     id="start_datum"
                                     type="date"
-                                    value={data.start_datum}
-                                    onChange={(e) => setData('start_datum', e.target.value)}
+                                    value={formData.start_datum}
+                                    onChange={(e) => handleInputChange('start_datum', e.target.value)}
                                     className={errors.start_datum ? 'border-red-500' : ''}
                                 />
                                 {errors.start_datum && <p className="mt-1 text-sm text-red-500">{errors.start_datum}</p>}
@@ -136,8 +177,8 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                                 <Input
                                     id="end_datum"
                                     type="date"
-                                    value={data.end_datum}
-                                    onChange={(e) => setData('end_datum', e.target.value)}
+                                    value={formData.end_datum}
+                                    onChange={(e) => handleInputChange('end_datum', e.target.value)}
                                     className={cn(errors.end_datum ? 'border-red-500' : '')}
                                 />
                                 {errors.end_datum && <p className="mt-1 text-sm text-red-500">{errors.end_datum}</p>}
@@ -153,8 +194,8 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                                 </Label>
                                 <select
                                     id="anreise_zeit"
-                                    value={data.anreise_zeit}
-                                    onChange={(e) => setData('anreise_zeit', e.target.value as 'morning' | 'afternoon')}
+                                    value={formData.anreise_zeit}
+                                    onChange={(e) => handleInputChange('anreise_zeit', e.target.value as 'morning' | 'afternoon')}
                                     className="flex h-10 w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-white ring-offset-background placeholder:text-white/60 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option value="afternoon">Nachmittags (Standard)</option>
@@ -173,8 +214,8 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                                     type="number"
                                     min="1"
                                     max="20"
-                                    value={data.gast_anzahl}
-                                    onChange={(e) => setData('gast_anzahl', parseInt(e.target.value) || 1)}
+                                    value={formData.gast_anzahl}
+                                    onChange={(e) => handleInputChange('gast_anzahl', parseInt(e.target.value) || 1)}
                                     className={errors.gast_anzahl ? 'border-red-500' : ''}
                                 />
                                 {errors.gast_anzahl && <p className="mt-1 text-sm text-red-500">{errors.gast_anzahl}</p>}
@@ -187,13 +228,13 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                             type="button"
                             variant="outline"
                             onClick={handleClose}
-                            disabled={processing}
+                            disabled={isProcessing}
                             className="border-white/30 text-white hover:bg-white/10"
                         >
                             Abbrechen
                         </Button>
-                        <Button type="submit" disabled={processing} className="min-w-[120px]">
-                            {processing ? 'Wird erstellt...' : 'Buchung erstellen'}
+                        <Button type="submit" disabled={isProcessing} className="min-w-[120px]">
+                            {isProcessing ? 'Wird erstellt...' : 'Buchung erstellen'}
                         </Button>
                     </DialogFooter>
                 </form>

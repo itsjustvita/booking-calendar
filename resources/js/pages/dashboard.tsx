@@ -4,9 +4,10 @@ import { MiniCalendar } from '@/components/mini-calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Calendar, Clock, Cloud, MapPin, TrendingUp, Users } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { formatGermanNumber, formatGermanDate } from '@/lib/utils';
 
 type HalfState = 'occupied' | 'free';
 
@@ -178,21 +179,12 @@ const WeatherWidget = ({ weatherData }: { weatherData?: WeatherData }) => {
 export default function Dashboard({ dashboardData, weatherData }: Props) {
     const [showBookingModal, setShowBookingModal] = useState(false);
     const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
-
-    // State für Buchungsformular
     const [showBookingForm, setShowBookingForm] = useState(false);
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [selectedTime, setSelectedTime] = useState<'morning' | 'afternoon'>('afternoon');
 
-    // Debug-Logs
-    console.log('Dashboard Data:', dashboardData);
-    console.log('Calendar Days:', dashboardData.calendarData.days);
-    console.log(
-        'Days with bookings:',
-        dashboardData.calendarData.days.filter((day) => day.hasBookings),
-    );
-
-    const handleDayClick = (day: CalendarDay) => {
+    // Memoized handlers for better performance
+    const handleDayClick = useCallback((day: CalendarDay) => {
         console.log('Day clicked:', day); // Debug
         console.log('Has bookings:', day.hasBookings); // Debug
         console.log('Bookings:', Array.isArray(day.bookings) ? day.bookings : Object.values(day.bookings || {})); // Debug
@@ -210,15 +202,15 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
         } as CalendarDay;
         setSelectedDay(normalized);
         setTimeout(() => setShowBookingModal(true), 0);
-    };
+    }, []);
 
-    const handleBookingFormOpen = (date: string, timeOfDay: 'morning' | 'afternoon') => {
+    const handleBookingFormOpen = useCallback((date: string, timeOfDay: 'morning' | 'afternoon') => {
         setSelectedDate(date);
         setSelectedTime(timeOfDay);
         setShowBookingForm(true);
-    };
+    }, []);
 
-    const handlePrevMonth = () => {
+    const handlePrevMonth = useCallback(() => {
         const currentMonth = new Date(dashboardData.currentMonth + ' 1, ' + dashboardData.currentYear);
         const prevMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
 
@@ -230,9 +222,9 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
             },
             { preserveState: true },
         );
-    };
+    }, [dashboardData.currentMonth, dashboardData.currentYear]);
 
-    const handleNextMonth = () => {
+    const handleNextMonth = useCallback(() => {
         const currentMonth = new Date(dashboardData.currentMonth + ' 1, ' + dashboardData.currentYear);
         const nextMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
 
@@ -244,17 +236,63 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
             },
             { preserveState: true },
         );
-    };
+    }, [dashboardData.currentMonth, dashboardData.currentYear]);
 
-    const handleEditBooking = (booking: CalendarDayBooking | UpcomingBooking) => {
+    const handleEditBooking = useCallback((booking: CalendarDayBooking | UpcomingBooking) => {
         // TODO: Implementiere Bearbeitung
         console.log('Edit booking:', booking);
-    };
+    }, []);
 
-    const handleDeleteBooking = (booking: CalendarDayBooking | UpcomingBooking) => {
+    const handleDeleteBooking = useCallback((booking: CalendarDayBooking | UpcomingBooking) => {
         // TODO: Implementiere Löschung
         console.log('Delete booking:', booking);
-    };
+    }, []);
+
+    // Polling für Live-Updates alle 30 Sekunden
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({ only: ['dashboardData', 'weatherData'] });
+        }, 30000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // Note: Preloading removed for Inertia v2 compatibility
+    // Prefetch functionality may not be available in this version
+
+    // Memoized statistics display
+    const statisticsDisplay = useMemo(() => {
+        const statistics = dashboardData.statistics;
+        
+        return {
+            totalBookings: (
+                <>
+                    <div className="text-2xl font-bold">{formatGermanNumber(statistics.totalBookings)}</div>
+                    <p className="text-xs text-white/70">In diesem Monat</p>
+                </>
+            ),
+            totalGuests: (
+                <>
+                    <div className="text-2xl font-bold">{formatGermanNumber(statistics.totalGuests)}</div>
+                    <p className="text-xs text-white/70">Gesamtanzahl</p>
+                </>
+            ),
+            upcomingBookings: (
+                <>
+                    <div className="text-2xl font-bold">{formatGermanNumber(statistics.upcomingBookings)}</div>
+                    <p className="text-xs text-white/70">Nächste 30 Tage</p>
+                </>
+            ),
+            occupancy: (
+                <>
+                    <div className="text-2xl font-bold">
+                        {statistics.totalBookings > 0 ? formatGermanNumber(Math.round((statistics.totalBookings / 30) * 100)) : '0'}%
+                    </div>
+                    <p className="text-xs text-white/70">Diesen Monat</p>
+                </>
+            ),
+        };
+    }, [dashboardData.statistics]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -267,7 +305,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                     <p className="glass-text">Überblick über Ihre Hüttenbuchungen im {dashboardData.currentMonth}</p>
                 </div>
 
-                {/* Statistiken */}
+                {/* Statistiken mit deferred props */}
                 <div className="grid items-stretch gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card className="glass-card h-full">
                         <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
@@ -275,8 +313,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                             <Calendar className="h-4 w-4 text-white/70" />
                         </CardHeader>
                         <CardContent className="glass-card-content">
-                            <div className="text-2xl font-bold">{dashboardData.statistics.totalBookings}</div>
-                            <p className="text-xs text-white/70">In diesem Monat</p>
+                            {statisticsDisplay.totalBookings}
                         </CardContent>
                     </Card>
 
@@ -286,8 +323,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                             <Users className="h-4 w-4 text-white/70" />
                         </CardHeader>
                         <CardContent className="glass-card-content">
-                            <div className="text-2xl font-bold">{dashboardData.statistics.totalGuests}</div>
-                            <p className="text-xs text-white/70">Gesamtanzahl</p>
+                            {statisticsDisplay.totalGuests}
                         </CardContent>
                     </Card>
 
@@ -297,8 +333,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                             <Clock className="h-4 w-4 text-white/70" />
                         </CardHeader>
                         <CardContent className="glass-card-content">
-                            <div className="text-2xl font-bold">{dashboardData.statistics.upcomingBookings}</div>
-                            <p className="text-xs text-white/70">Nächste 30 Tage</p>
+                            {statisticsDisplay.upcomingBookings}
                         </CardContent>
                     </Card>
 
@@ -308,10 +343,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                             <TrendingUp className="h-4 w-4 text-white/70" />
                         </CardHeader>
                         <CardContent className="glass-card-content">
-                            <div className="text-2xl font-bold">
-                                {dashboardData.statistics.totalBookings > 0 ? Math.round((dashboardData.statistics.totalBookings / 30) * 100) : 0}%
-                            </div>
-                            <p className="text-xs text-white/70">Diesen Monat</p>
+                            {statisticsDisplay.occupancy}
                         </CardContent>
                     </Card>
                 </div>
@@ -322,7 +354,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                         <MiniCalendar
                             currentMonth={dashboardData.currentMonth}
                             calendarData={dashboardData.calendarData}
-                            onDayClick={(day) => handleDayClick(day as unknown as CalendarDay)}
+                            onDayClick={(day) => handleDayClick(day as any)}
                             onPrevMonth={handlePrevMonth}
                             onNextMonth={handleNextMonth}
                             onBookingFormOpen={handleBookingFormOpen}
@@ -337,7 +369,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                     </div>
                 </div>
 
-                {/* Kommende Buchungen */}
+                {/* Kommende Buchungen mit deferred props */}
                 <Card className="glass-card">
                     <CardHeader className="glass-card-header">
                         <CardTitle className="glass-card-title">Kommende Buchungen</CardTitle>
@@ -399,13 +431,19 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-sm font-medium text-white">{b.gast_anzahl} Gäste</p>
+                                            <p className="text-sm font-medium text-white">{formatGermanNumber(b.gast_anzahl)} Gäste</p>
                                             <p className="text-xs text-white/70">{b.status_name}</p>
                                         </div>
                                     </button>
                                 ))
-                            ) : (
+                            ) : dashboardData.upcomingList ? (
                                 <p className="py-4 text-center text-white/70">Keine kommenden Buchungen</p>
+                            ) : (
+                                <div className="animate-pulse space-y-3">
+                                    {[...Array(3)].map((_, i) => (
+                                        <div key={i} className="h-20 rounded bg-white/20"></div>
+                                    ))}
+                                </div>
                             )}
                         </div>
                     </CardContent>

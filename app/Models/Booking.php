@@ -48,7 +48,7 @@ class Booking extends Model
      */
     public function getStatusNameAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             BookingStatus::PENDING => 'Ausstehend',
             BookingStatus::CONFIRMED => 'Bestätigt',
             BookingStatus::CANCELLED => 'Storniert',
@@ -88,18 +88,58 @@ class Booking extends Model
     }
 
     /**
-     * Get formatted date range
+     * Get formatted date range in German format
      */
     public function getDateRangeAttribute(): string
     {
-        $start = $this->start_datum->format('d.m.Y');
-        $end = $this->end_datum->format('d.m.Y');
-        
+        $start = $this->start_datum->locale('de')->format('d.m.Y');
+        $end = $this->end_datum->locale('de')->format('d.m.Y');
+
         if ($start === $end) {
             return $start;
         }
-        
+
         return "{$start} - {$end}";
+    }
+
+    /**
+     * Get formatted start date in German format
+     */
+    public function getFormattedStartDateAttribute(): string
+    {
+        return $this->start_datum->locale('de')->format('d.m.Y');
+    }
+
+    /**
+     * Get formatted end date in German format
+     */
+    public function getFormattedEndDateAttribute(): string
+    {
+        return $this->end_datum->locale('de')->format('d.m.Y');
+    }
+
+    /**
+     * Get day name of start date in German
+     */
+    public function getStartDayNameAttribute(): string
+    {
+        return $this->start_datum->locale('de')->dayName;
+    }
+
+    /**
+     * Get day name of end date in German
+     */
+    public function getEndDayNameAttribute(): string
+    {
+        return $this->end_datum->locale('de')->dayName;
+    }
+
+    /**
+     * Get month name of start date in German
+     */
+    public function getStartMonthNameAttribute(): string
+    {
+        return $this->start_datum->locale('de')->monthName;
     }
 
     /**
@@ -117,11 +157,11 @@ class Booking extends Model
     {
         return $query->where(function ($q) use ($startDate, $endDate) {
             $q->whereBetween('start_datum', [$startDate, $endDate])
-              ->orWhereBetween('end_datum', [$startDate, $endDate])
-              ->orWhere(function ($q2) use ($startDate, $endDate) {
-                  $q2->where('start_datum', '<=', $startDate)
-                     ->where('end_datum', '>=', $endDate);
-              });
+                ->orWhereBetween('end_datum', [$startDate, $endDate])
+                ->orWhere(function ($q2) use ($startDate, $endDate) {
+                    $q2->where('start_datum', '<=', $startDate)
+                        ->where('end_datum', '>=', $endDate);
+                });
         });
     }
 
@@ -131,5 +171,46 @@ class Booking extends Model
     public function scopeConfirmed($query)
     {
         return $query->where('status', BookingStatus::CONFIRMED);
+    }
+
+    /**
+     * Scope to get pending bookings only
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', BookingStatus::PENDING);
+    }
+
+    /**
+     * Scope to get cancelled bookings only
+     */
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', BookingStatus::CANCELLED);
+    }
+
+    /**
+     * Scope to get upcoming bookings
+     */
+    public function scopeUpcoming($query)
+    {
+        return $query->where('start_datum', '>=', now());
+    }
+
+    /**
+     * Scope to get past bookings
+     */
+    public function scopePast($query)
+    {
+        return $query->where('end_datum', '<', now());
+    }
+
+    /**
+     * Scope to get current bookings
+     */
+    public function scopeCurrent($query)
+    {
+        return $query->where('start_datum', '<=', now())
+            ->where('end_datum', '>=', now());
     }
 }

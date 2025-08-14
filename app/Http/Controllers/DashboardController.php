@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -31,11 +33,11 @@ class DashboardController extends Controller
         $endOfMonth = $date->copy()->endOfMonth();
 
         // Debug
-        \Log::info('Dashboard: Current date params', [
+        Log::info('Dashboard: Current date params', [
             'year' => $year,
             'month' => $month,
             'startOfMonth' => $startOfMonth->format('Y-m-d'),
-            'endOfMonth' => $endOfMonth->format('Y-m-d')
+            'endOfMonth' => $endOfMonth->format('Y-m-d'),
         ]);
 
         // Get bookings for the month
@@ -44,39 +46,26 @@ class DashboardController extends Controller
             ->orWhereBetween('end_datum', [$startOfMonth, $endOfMonth])
             ->orWhere(function ($query) use ($startOfMonth, $endOfMonth) {
                 $query->where('start_datum', '<=', $startOfMonth)
-                      ->where('end_datum', '>=', $endOfMonth);
+                    ->where('end_datum', '>=', $endOfMonth);
             })
             ->get();
 
         // Debug
-        \Log::info('Dashboard: Found bookings', [
+        Log::info('Dashboard: Found bookings', [
             'count' => $bookings->count(),
-            'bookings' => $bookings->pluck('titel', 'id')->toArray()
+            'bookings' => $bookings->pluck('titel', 'id')->toArray(),
         ]);
-
-        // Get statistics
-        $totalBookings = Booking::whereYear('start_datum', $year)
-            ->whereMonth('start_datum', $month)
-            ->count();
-
-        $totalGuests = Booking::whereYear('start_datum', $year)
-            ->whereMonth('start_datum', $month)
-            ->sum('gast_anzahl');
-
-        $upcomingBookings = Booking::where('start_datum', '>=', Carbon::now())
-            ->where('start_datum', '<=', Carbon::now()->addDays(30))
-            ->count();
 
         // Create calendar days
         $calendarDays = $this->generateCalendarDays($startOfMonth, $endOfMonth, $bookings);
 
         // Debug
-        $daysWithBookings = collect($calendarDays)->filter(function($day) {
+        $daysWithBookings = collect($calendarDays)->filter(function ($day) {
             return $day['hasBookings'];
         });
-        \Log::info('Dashboard: Calendar days with bookings', [
+        Log::info('Dashboard: Calendar days with bookings', [
             'count' => $daysWithBookings->count(),
-            'days' => $daysWithBookings->pluck('date')->toArray()
+            'days' => $daysWithBookings->pluck('date')->toArray(),
         ]);
 
         // Wetterstandort aus Cache abrufen
@@ -85,13 +74,13 @@ class DashboardController extends Controller
             'country' => 'Österreich',
             'coordinates' => [
                 'lat' => 47.4500,
-                'lon' => 9.8833
-            ]
+                'lon' => 9.8833,
+            ],
         ]);
 
         // Wetterdaten via Open-Meteo (kein API-Key erforderlich). In Tests kein Netzwerkzugriff.
         $weatherData = Cache::remember(
-            'weather:' . $weatherLocation['coordinates']['lat'] . ':' . $weatherLocation['coordinates']['lon'],
+            'weather:'.$weatherLocation['coordinates']['lat'].':'.$weatherLocation['coordinates']['lon'],
             now()->addMinutes(30),
             function () use ($weatherLocation) {
                 if (App::environment('testing')) {
@@ -111,18 +100,18 @@ class DashboardController extends Controller
                     ];
 
                     $response = Http::timeout(5)->retry(2, 200)->get($url, $params);
-                    if (!$response->successful()) {
+                    if (! $response->successful()) {
                         return null;
                     }
                     $data = $response->json();
 
                     $current = $data['current'] ?? null;
                     $daily = $data['daily'] ?? null;
-                    if (!$current || !$daily) {
+                    if (! $current || ! $daily) {
                         return null;
                     }
 
-                    $location = $weatherLocation['city'] . ', ' . $weatherLocation['country'];
+                    $location = $weatherLocation['city'].', '.$weatherLocation['country'];
 
                     // Forecast: nächste 3 Tage ab morgen
                     $dates = $daily['time'] ?? [];
@@ -130,7 +119,7 @@ class DashboardController extends Controller
                     $tmax = $daily['temperature_2m_max'] ?? [];
                     $forecast = [];
                     for ($i = 1; $i <= 3; $i++) {
-                        if (!isset($dates[$i])) {
+                        if (! isset($dates[$i])) {
                             break;
                         }
                         $date = Carbon::parse($dates[$i]);
@@ -151,14 +140,65 @@ class DashboardController extends Controller
                         'forecast' => $forecast,
                     ];
                 } catch (\Throwable $e) {
-                    \Log::warning('Wetterdaten konnten nicht geladen werden', ['error' => $e->getMessage()]);
+                    Log::warning('Wetterdaten konnten nicht geladen werden', ['error' => $e->getMessage()]);
+
                     return null;
                 }
             }
         );
 
-        // Liste kommender Buchungen (Titel, Gäste, Status) für das Dashboard
-        $upcomingList = Booking::with('user')
+        return Inertia::render('dashboard', [
+            'dashboardData' => [
+                'currentMonth' => $date->locale('de')->format('F Y'),
+                'currentYear' => $year,
+                'calendarData' => [
+                    'days' => $calendarDays,
+                    'weekdays' => ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+                ],
+                'statistics' => [
+                    'totalBookings' => $this->getStatistics($year, $month)['totalBookings'],
+                    'totalGuests' => $this->getStatistics($year, $month)['totalGuests'],
+                    'upcomingBookings' => $this->getStatistics($year, $month)['upcomingBookings'],
+                    'monthlyRevenue' => $this->getStatistics($year, $month)['monthlyRevenue'],
+                ],
+                'upcomingList' => $this->getUpcomingList(),
+            ],
+            'weatherLocation' => $weatherLocation,
+            'weatherData' => $weatherData,
+        ]);
+    }
+
+    /**
+     * Get statistics for the dashboard (deferred)
+     */
+    private function getStatistics(int $year, int $month): array
+    {
+        $totalBookings = Booking::whereYear('start_datum', $year)
+            ->whereMonth('start_datum', $month)
+            ->count();
+
+        $totalGuests = Booking::whereYear('start_datum', $year)
+            ->whereMonth('start_datum', $month)
+            ->sum('gast_anzahl');
+
+        $upcomingBookings = Booking::where('start_datum', '>=', Carbon::now())
+            ->where('start_datum', '<=', Carbon::now()->addDays(30))
+            ->count();
+
+        return [
+            'totalBookings' => $totalBookings,
+            'totalGuests' => $totalGuests,
+            'upcomingBookings' => $upcomingBookings,
+            'monthlyRevenue' => 0, // TODO: Calculate when pricing is implemented
+        ];
+    }
+
+    /**
+     * Get upcoming bookings list (deferred)
+     */
+    private function getUpcomingList(): array
+    {
+        return Booking::with('user')
             ->where('start_datum', '>=', Carbon::now())
             ->orderBy('start_datum')
             ->limit(5)
@@ -177,27 +217,8 @@ class DashboardController extends Controller
                         'email' => $b->user->email,
                     ],
                 ];
-            });
-
-        return Inertia::render('dashboard', [
-            'dashboardData' => [
-                'currentMonth' => $date->locale('de')->format('F Y'),
-                'currentYear' => $year,
-                'calendarData' => [
-                    'days' => $calendarDays,
-                    'weekdays' => ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
-                ],
-                'statistics' => [
-                    'totalBookings' => $totalBookings,
-                    'totalGuests' => $totalGuests,
-                    'upcomingBookings' => $upcomingBookings,
-                    'monthlyRevenue' => 0, // TODO: Calculate when pricing is implemented
-                ],
-                'upcomingList' => $upcomingList,
-            ],
-            'weatherLocation' => $weatherLocation,
-            'weatherData' => $weatherData,
-        ]);
+            })
+            ->toArray();
     }
 
     private static function mapWeatherCodeToGerman(int $code): string
@@ -289,7 +310,7 @@ class DashboardController extends Controller
                 $startDate = Carbon::parse($booking->start_datum);
                 $endDate = Carbon::parse($booking->end_datum);
                 $duration = $startDate->diffInDays($endDate) + 1;
-                
+
                 return [
                     'id' => $booking->id,
                     'titel' => $booking->titel,
@@ -300,14 +321,14 @@ class DashboardController extends Controller
                     'status' => $booking->status->value,
                     'status_name' => $booking->status_name,
                     'duration' => $duration,
-                    'date_range' => $startDate->format('d.m.Y') . ' - ' . $endDate->format('d.m.Y'),
+                    'date_range' => $startDate->format('d.m.Y').' - '.$endDate->format('d.m.Y'),
                     'user' => [
                         'id' => $booking->user->id,
                         'name' => $booking->user->name,
                         'email' => $booking->user->email,
                     ],
-                    'can_edit' => auth()->user() ? auth()->user()->can('update', $booking) : false,
-                    'can_delete' => auth()->user() ? auth()->user()->can('delete', $booking) : false,
+                    'can_edit' => Auth::check() ? Auth::user()->can('update', $booking) : false,
+                    'can_delete' => Auth::check() ? Auth::user()->can('delete', $booking) : false,
                 ];
             })->values()->toArray();
 
