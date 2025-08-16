@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { router } from '@inertiajs/react';
-import { CalendarDays, Clock, FileText, Users } from 'lucide-react';
+import { CalendarDays, Clock, FileText } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
 interface BookingFormModalProps {
@@ -15,13 +15,12 @@ interface BookingFormModalProps {
     initialTime?: 'morning' | 'afternoon';
 }
 
-export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTime = 'afternoon' }: BookingFormModalProps) {
+export default function BookingFormModal({ isOpen, onClose, initialDate = '', initialTime = 'afternoon' }: BookingFormModalProps) {
     const [formData, setFormData] = useState({
         titel: '',
         beschreibung: '',
         start_datum: initialDate,
         end_datum: '',
-        gast_anzahl: 1,
         anreise_zeit: initialTime,
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -66,7 +65,6 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
             beschreibung: '',
             start_datum: initialDate,
             end_datum: '',
-            gast_anzahl: 1,
             anreise_zeit: initialTime,
         });
         setErrors({});
@@ -82,7 +80,6 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                 beschreibung: '',
                 start_datum: initialDate,
                 end_datum: '',
-                gast_anzahl: 1,
                 anreise_zeit: initialTime,
             });
         }
@@ -185,41 +182,22 @@ export function BookingFormModal({ isOpen, onClose, initialDate = '', initialTim
                             </div>
                         </div>
 
-                        {/* Anreisezeit und Gästeanzahl */}
-                        <div className="grid grid-cols-2 gap-5">
-                            <div>
-                                <Label htmlFor="anreise_zeit" className="mb-1 flex items-center gap-2 text-white">
-                                    <Clock className="h-4 w-4 text-white/70" />
-                                    Anreisezeit
-                                </Label>
-                                <select
-                                    id="anreise_zeit"
-                                    value={formData.anreise_zeit}
-                                    onChange={(e) => handleInputChange('anreise_zeit', e.target.value as 'morning' | 'afternoon')}
-                                    className="flex h-10 w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-white ring-offset-background placeholder:text-white/60 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    <option value="afternoon">Nachmittags (Standard)</option>
-                                    <option value="morning">Vormittags</option>
-                                </select>
-                                {errors.anreise_zeit && <p className="mt-1 text-sm text-red-500">{errors.anreise_zeit}</p>}
-                            </div>
-
-                            <div>
-                                <Label htmlFor="gast_anzahl" className="mb-1 flex items-center gap-2 text-white">
-                                    <Users className="h-4 w-4 text-white/70" />
-                                    Anzahl Gäste
-                                </Label>
-                                <Input
-                                    id="gast_anzahl"
-                                    type="number"
-                                    min="1"
-                                    max="20"
-                                    value={formData.gast_anzahl}
-                                    onChange={(e) => handleInputChange('gast_anzahl', parseInt(e.target.value) || 1)}
-                                    className={errors.gast_anzahl ? 'border-red-500' : ''}
-                                />
-                                {errors.gast_anzahl && <p className="mt-1 text-sm text-red-500">{errors.gast_anzahl}</p>}
-                            </div>
+                        {/* Anreisezeit */}
+                        <div>
+                            <Label htmlFor="anreise_zeit" className="mb-1 flex items-center gap-2 text-white">
+                                <Clock className="h-4 w-4 text-white/70" />
+                                Anreisezeit
+                            </Label>
+                            <select
+                                id="anreise_zeit"
+                                value={formData.anreise_zeit}
+                                onChange={(e) => handleInputChange('anreise_zeit', e.target.value as 'morning' | 'afternoon')}
+                                className="flex h-10 w-full rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-white ring-offset-background placeholder:text-white/60 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <option value="afternoon">Nachmittags (Standard)</option>
+                                <option value="morning">Vormittags</option>
+                            </select>
+                            {errors.anreise_zeit && <p className="mt-1 text-sm text-red-500">{errors.anreise_zeit}</p>}
                         </div>
                     </div>
 

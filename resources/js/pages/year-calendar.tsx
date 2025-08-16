@@ -1,11 +1,11 @@
 import BookingDetailsModal from '@/components/booking-details-modal';
-import { BookingFormModal } from '@/components/booking-form-modal';
+import BookingFormModal from '@/components/booking-form-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
-import { type BreadcrumbItem, type SharedData } from '@/types';
+import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Calendar, ChevronLeft, ChevronRight, TrendingUp, Users } from 'lucide-react';
 import { useState } from 'react';
@@ -16,7 +16,7 @@ interface Booking {
     beschreibung?: string;
     start_datum: string;
     end_datum: string;
-    gast_anzahl: number;
+
     status: string;
     status_name: string;
     duration: number;
@@ -65,7 +65,6 @@ interface MonthData {
 
 interface YearStats {
     totalBookings: number;
-    totalGuests: number;
     occupiedDays: number;
     mostBusyMonth: {
         month: number;
@@ -83,12 +82,7 @@ interface YearCalendarPageProps extends SharedData {
     nextYear: number;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Jahreskalender',
-        href: '/year-calendar',
-    },
-];
+
 
 export default function YearCalendar() {
     const { year, monthsData, yearStats, previousYear, nextYear } = usePage<YearCalendarPageProps>().props;
@@ -219,10 +213,10 @@ export default function YearCalendar() {
     );
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout>
             <Head title={`${year}`} />
 
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl">
                 {/* Header with year navigation and stats */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -260,16 +254,7 @@ export default function YearCalendar() {
                         </CardContent>
                     </Card>
 
-                    <Card className="glass-card">
-                        <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="glass-card-title text-sm font-medium">Gäste gesamt</CardTitle>
-                            <Users className="h-4 w-4 text-white/70" />
-                        </CardHeader>
-                        <CardContent className="glass-card-content">
-                            <div className="text-2xl font-bold">{yearStats.totalGuests}</div>
-                            <p className="text-xs text-white/70">{yearStats.totalGuests === 1 ? 'Person' : 'Personen'} insgesamt</p>
-                        </CardContent>
-                    </Card>
+
 
                     <Card className="glass-card">
                         <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
@@ -355,8 +340,8 @@ export default function YearCalendar() {
                 isOpen={showBookingModal}
                 onOpenChange={setShowBookingModal}
                 selectedDay={selectedDay}
-                onEditBooking={handleEditBooking}
-                onDeleteBooking={handleDeleteBooking}
+                onEditBooking={(booking: any) => handleEditBooking(booking)}
+                onDeleteBooking={(booking: any) => handleDeleteBooking(booking)}
             />
         </AppLayout>
     );

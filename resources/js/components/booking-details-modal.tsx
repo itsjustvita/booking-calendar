@@ -5,8 +5,8 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { CalendarDays, Clock, Mail, Pencil, Trash2, User, Users } from 'lucide-react';
 import { useState } from 'react';
-import { BookingDeleteModal } from './booking-delete-modal';
-import { BookingEditModal } from './booking-edit-modal';
+import BookingDeleteModal from './booking-delete-modal';
+import BookingEditModal from './booking-edit-modal';
 
 interface Booking {
     id: number;
@@ -14,7 +14,7 @@ interface Booking {
     beschreibung?: string;
     start_datum: string;
     end_datum: string;
-    gast_anzahl: number;
+
     status: string;
     status_name: string;
     duration: number;
@@ -186,13 +186,7 @@ export default function BookingDetailsModal({ isOpen, onOpenChange, selectedDay,
                                         </span>
                                     </div>
 
-                                    <div className="flex items-center gap-2">
-                                        <Users className="h-4 w-4 text-white/70" />
-                                        <span className="font-medium text-white">Anzahl Gäste:</span>
-                                        <span className="text-white/90">
-                                            {booking.gast_anzahl} Person{booking.gast_anzahl !== 1 ? 'en' : ''}
-                                        </span>
-                                    </div>
+
 
                                     <div className="flex items-center gap-2">
                                         <User className="h-4 w-4 text-white/70" />

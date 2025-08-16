@@ -9,7 +9,7 @@ interface Booking {
     beschreibung?: string;
     start_datum: string;
     end_datum: string;
-    gast_anzahl: number;
+
     status: string;
     status_name: string;
     user: {
@@ -26,7 +26,7 @@ interface BookingDeleteModalProps {
     onDeleted?: () => void;
 }
 
-export function BookingDeleteModal({ isOpen, onClose, booking, onDeleted }: BookingDeleteModalProps) {
+export default function BookingDeleteModal({ isOpen, onClose, booking, onDeleted }: BookingDeleteModalProps) {
     const { delete: deleteBooking, processing } = useForm();
 
     const handleDelete = () => {
@@ -81,9 +81,7 @@ export function BookingDeleteModal({ isOpen, onClose, booking, onDeleted }: Book
                                     <p>
                                         <strong>Zeitraum:</strong> {formatDate(booking.start_datum)} - {formatDate(booking.end_datum)}
                                     </p>
-                                    <p>
-                                        <strong>Gäste:</strong> {booking.gast_anzahl} Person{booking.gast_anzahl !== 1 ? 'en' : ''}
-                                    </p>
+
                                     <p>
                                         <strong>Status:</strong> {booking.status_name}
                                     </p>

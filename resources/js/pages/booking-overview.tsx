@@ -6,6 +6,9 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { CalendarIcon, ChevronLeft, ChevronRight, Clock, Edit, Eye, Trash2, TrendingUp, Users } from 'lucide-react';
 import { useState } from 'react';
+import BookingDetailsModal from '@/components/booking-details-modal';
+import BookingEditModal from '@/components/booking-edit-modal';
+import BookingDeleteModal from '@/components/booking-delete-modal';
 
 interface User {
     id: number;
@@ -16,20 +19,22 @@ interface User {
 interface Booking {
     id: number;
     titel: string;
-    beschreibung: string;
+    beschreibung?: string;
     start_datum: string;
     end_datum: string;
     start_datum_formatted: string;
     end_datum_formatted: string;
     duration: number;
-    gast_anzahl: number;
+
     status: string;
     status_name: string;
+    date_range?: string;
     user: User;
     created_at: string;
     updated_at: string;
     can_edit: boolean;
     can_delete: boolean;
+    anreise_zeit?: string;
 }
 
 interface Statistics {
@@ -58,11 +63,13 @@ interface BookingOverviewProps {
 
 export default function BookingOverview({ bookings, statistics, year, availableYears, previousYear, nextYear }: BookingOverviewProps) {
     const [selectedYear, setSelectedYear] = useState(year.toString());
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+    const [selectedDayForModal, setSelectedDayForModal] = useState<any>(null);
 
-    const breadcrumbs = [
-        { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Buchungsübersicht', href: '#' },
-    ];
+
 
     const handleYearChange = (newYear: string) => {
         setSelectedYear(newYear);
@@ -73,19 +80,64 @@ export default function BookingOverview({ bookings, statistics, year, availableY
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'confirmed':
+            case 'gebucht':
                 return 'bg-green-500/20 text-green-300 border-green-500/30';
-            case 'pending':
+            case 'reserviert':
                 return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
-            case 'cancelled':
-                return 'bg-red-500/20 text-red-300 border-red-500/30';
             default:
                 return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
         }
     };
 
+    const handleViewBooking = (booking: Booking) => {
+        // Erstelle ein CalendarDay-Objekt für das Modal
+        const mockDay = {
+            date: booking.start_datum,
+            day: new Date(booking.start_datum).getDate(),
+            dayName: new Date(booking.start_datum).toLocaleDateString('de-DE', { weekday: 'short' }),
+            isCurrentMonth: true,
+            isToday: false,
+            isWeekend: false,
+            bookings: [booking],
+            hasBookings: true,
+            isArrivalDay: true,
+            isDepartureDay: false,
+            isFullyOccupied: false,
+            leftHalf: 'occupied' as const,
+            rightHalf: 'occupied' as const,
+        };
+        setSelectedDayForModal(mockDay);
+        setShowDetailsModal(true);
+    };
+
+    const handleEditBooking = (booking: Booking) => {
+        setSelectedBooking(booking);
+        setShowEditModal(true);
+    };
+
+    const handleDeleteBooking = (booking: Booking) => {
+        setSelectedBooking(booking);
+        setShowDeleteModal(true);
+    };
+
+    const handleEditBookingFromModal = (booking: any) => {
+        // Convert booking to local format if needed
+        const localBooking = bookings.find(b => b.id === booking.id);
+        if (localBooking) {
+            handleEditBooking(localBooking);
+        }
+    };
+
+    const handleDeleteBookingFromModal = (booking: any) => {
+        // Convert booking to local format if needed
+        const localBooking = bookings.find(b => b.id === booking.id);
+        if (localBooking) {
+            handleDeleteBooking(localBooking);
+        }
+    };
+
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout>
             <Head title={`Buchungsübersicht ${year}`} />
 
             <div className="space-y-6">
@@ -139,18 +191,7 @@ export default function BookingOverview({ bookings, statistics, year, availableY
                         </CardContent>
                     </Card>
 
-                    <Card className="glass-card">
-                        <CardHeader className="glass-card-header pb-2">
-                            <CardTitle className="glass-card-title flex items-center gap-2 text-sm font-medium">
-                                <Users className="h-4 w-4 text-white/70" />
-                                Gesamte Gäste
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="glass-card-content">
-                            <div className="text-2xl font-bold text-white">{statistics.total_guests}</div>
-                            <div className="text-xs text-white/80">Über alle Buchungen</div>
-                        </CardContent>
-                    </Card>
+
 
                     <Card className="glass-card">
                         <CardHeader className="glass-card-header pb-2">
@@ -203,7 +244,7 @@ export default function BookingOverview({ bookings, statistics, year, availableY
                                                 Zeitraum
                                             </th>
                                             <th className="px-6 py-4 text-left text-xs font-medium tracking-wider text-white/80 uppercase">Dauer</th>
-                                            <th className="px-6 py-4 text-left text-xs font-medium tracking-wider text-white/80 uppercase">Gäste</th>
+
                                             <th className="px-6 py-4 text-left text-xs font-medium tracking-wider text-white/80 uppercase">Gast</th>
                                             <th className="px-6 py-4 text-left text-xs font-medium tracking-wider text-white/80 uppercase">Status</th>
                                             <th className="px-6 py-4 text-left text-xs font-medium tracking-wider text-white/80 uppercase">
@@ -235,9 +276,7 @@ export default function BookingOverview({ bookings, statistics, year, availableY
                                                         {booking.duration} {booking.duration === 1 ? 'Tag' : 'Tage'}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm text-white">{booking.gast_anzahl}</div>
-                                                </td>
+
                                                 <td className="px-6 py-4">
                                                     <div>
                                                         <div className="text-sm font-medium text-white">{booking.user.name}</div>
@@ -256,6 +295,7 @@ export default function BookingOverview({ bookings, statistics, year, availableY
                                                             size="sm"
                                                             variant="ghost"
                                                             className="text-white/70 hover:bg-white/10 hover:text-white"
+                                                            onClick={() => handleViewBooking(booking)}
                                                         >
                                                             <Eye className="h-4 w-4" />
                                                         </Button>
@@ -264,6 +304,7 @@ export default function BookingOverview({ bookings, statistics, year, availableY
                                                                 size="sm"
                                                                 variant="ghost"
                                                                 className="text-white/70 hover:bg-white/10 hover:text-white"
+                                                                onClick={() => handleEditBooking(booking)}
                                                             >
                                                                 <Edit className="h-4 w-4" />
                                                             </Button>
@@ -273,6 +314,7 @@ export default function BookingOverview({ bookings, statistics, year, availableY
                                                                 size="sm"
                                                                 variant="ghost"
                                                                 className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                                                                onClick={() => handleDeleteBooking(booking)}
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
                                                             </Button>
@@ -295,6 +337,39 @@ export default function BookingOverview({ bookings, statistics, year, availableY
                     </Link>
                 </div>
             </div>
+
+            {/* Modal Components */}
+            <BookingDetailsModal
+                isOpen={showDetailsModal}
+                onOpenChange={setShowDetailsModal}
+                selectedDay={selectedDayForModal}
+                onEditBooking={handleEditBookingFromModal}
+                onDeleteBooking={handleDeleteBookingFromModal}
+            />
+
+            <BookingEditModal
+                isOpen={showEditModal}
+                onClose={() => {
+                    setShowEditModal(false);
+                    setSelectedBooking(null);
+                }}
+                booking={selectedBooking as any}
+            />
+
+            <BookingDeleteModal
+                isOpen={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setSelectedBooking(null);
+                }}
+                booking={selectedBooking as any}
+                onDeleted={() => {
+                    setShowDeleteModal(false);
+                    setSelectedBooking(null);
+                    // Refresh the page to show updated data
+                    router.reload();
+                }}
+            />
         </AppLayout>
     );
 }

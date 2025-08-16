@@ -157,7 +157,6 @@ class DashboardController extends Controller
                 ],
                 'statistics' => [
                     'totalBookings' => $this->getStatistics($year, $month)['totalBookings'],
-                    'totalGuests' => $this->getStatistics($year, $month)['totalGuests'],
                     'upcomingBookings' => $this->getStatistics($year, $month)['upcomingBookings'],
                     'monthlyRevenue' => $this->getStatistics($year, $month)['monthlyRevenue'],
                 ],
@@ -177,17 +176,12 @@ class DashboardController extends Controller
             ->whereMonth('start_datum', $month)
             ->count();
 
-        $totalGuests = Booking::whereYear('start_datum', $year)
-            ->whereMonth('start_datum', $month)
-            ->sum('gast_anzahl');
-
         $upcomingBookings = Booking::where('start_datum', '>=', Carbon::now())
             ->where('start_datum', '<=', Carbon::now()->addDays(30))
             ->count();
 
         return [
             'totalBookings' => $totalBookings,
-            'totalGuests' => $totalGuests,
             'upcomingBookings' => $upcomingBookings,
             'monthlyRevenue' => 0, // TODO: Calculate when pricing is implemented
         ];
@@ -207,7 +201,7 @@ class DashboardController extends Controller
                 return [
                     'id' => $b->id,
                     'titel' => $b->titel,
-                    'gast_anzahl' => $b->gast_anzahl,
+
                     'status' => $b->status->value,
                     'status_name' => $b->status_name,
                     'date_range' => $b->date_range,
@@ -317,7 +311,7 @@ class DashboardController extends Controller
                     'beschreibung' => $booking->beschreibung,
                     'start_datum' => $booking->start_datum->format('Y-m-d'),
                     'end_datum' => $booking->end_datum->format('Y-m-d'),
-                    'gast_anzahl' => $booking->gast_anzahl,
+
                     'status' => $booking->status->value,
                     'status_name' => $booking->status_name,
                     'duration' => $duration,

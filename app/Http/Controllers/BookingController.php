@@ -39,9 +39,7 @@ class BookingController extends Controller
             'beschreibung' => $request->beschreibung,
             'start_datum' => $request->start_datum,
             'end_datum' => $request->end_datum,
-            'gast_anzahl' => $request->gast_anzahl,
-            'anreise_zeit' => $request->anreise_zeit,
-            'status' => 'pending',
+            'status' => 'reserviert',
         ]);
 
         return redirect()->back()->with('success', 'Buchung erfolgreich erstellt!');
@@ -83,8 +81,6 @@ class BookingController extends Controller
             'beschreibung' => $request->beschreibung,
             'start_datum' => $request->start_datum,
             'end_datum' => $request->end_datum,
-            'gast_anzahl' => $request->gast_anzahl,
-            'anreise_zeit' => $request->anreise_zeit,
         ]);
 
         return redirect()->back()->with('success', 'Buchung erfolgreich aktualisiert!');

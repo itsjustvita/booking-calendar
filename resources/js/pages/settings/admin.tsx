@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { type BreadcrumbItem } from '@/types';
+
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle, MapPin, Save } from 'lucide-react';
 import { FormEventHandler } from 'react';
@@ -24,16 +24,7 @@ interface AdminSettingsProps {
     status?: string;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Settings',
-        href: '/settings/profile',
-    },
-    {
-        title: 'Admin-Einstellungen',
-        href: '/settings/admin',
-    },
-];
+
 
 export default function AdminSettings({ weatherLocation, status }: AdminSettingsProps) {
     const { data, setData, patch, processing, errors, reset } = useForm({
@@ -51,7 +42,7 @@ export default function AdminSettings({ weatherLocation, status }: AdminSettings
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout>
             <Head title="Admin-Einstellungen" />
 
             <SettingsLayout>

@@ -8,12 +8,12 @@ import { type PropsWithChildren, useState, useEffect } from 'react';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
+        title: 'Profil',
         href: '/settings/profile',
         icon: null,
     },
     {
-        title: 'Password',
+        title: 'Passwort',
         href: '/settings/password',
         icon: null,
     },
@@ -44,7 +44,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
     return (
         <div className="px-4 py-6">
-            <Heading title="Settings" description="Manage your profile and account settings" />
+            <Heading title="Einstellungen" description="Verwalten Sie Ihr Profil und Kontoeinstellungen" />
 
             <div className="flex flex-col space-y-8 lg:flex-row lg:space-y-0 lg:space-x-12">
                 <aside className="w-full max-w-xl lg:w-48">
@@ -55,8 +55,9 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                 size="sm"
                                 variant="ghost"
                                 asChild
-                                className={cn('w-full justify-start', {
-                                    'bg-muted': isClient && currentPath === item.href,
+                                className={cn('w-full justify-start text-white hover:bg-white/20', {
+                                    'bg-white/20 text-white': isClient && currentPath === item.href,
+                                    'text-white/70': isClient && currentPath !== item.href,
                                 })}
                             >
                                 <Link href={item.href} prefetch>

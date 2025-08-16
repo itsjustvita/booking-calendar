@@ -26,7 +26,6 @@ class UpdateBookingRequest extends FormRequest
             'beschreibung' => 'nullable|string|max:1000',
             'start_datum' => 'required|date|after_or_equal:today',
             'end_datum' => 'required|date|after:start_datum',
-            'gast_anzahl' => 'required|integer|min:1|max:20',
             'anreise_zeit' => 'required|in:morning,afternoon',
         ];
     }
@@ -48,10 +47,6 @@ class UpdateBookingRequest extends FormRequest
             'end_datum.required' => 'Das Abreisedatum ist erforderlich.',
             'end_datum.date' => 'Das Abreisedatum muss ein gültiges Datum sein.',
             'end_datum.after' => 'Das Abreisedatum muss nach dem Anreisedatum liegen.',
-            'gast_anzahl.required' => 'Die Anzahl der Gäste ist erforderlich.',
-            'gast_anzahl.integer' => 'Die Anzahl der Gäste muss eine ganze Zahl sein.',
-            'gast_anzahl.min' => 'Es muss mindestens 1 Gast angegeben werden.',
-            'gast_anzahl.max' => 'Es können maximal 20 Gäste angegeben werden.',
             'anreise_zeit.required' => 'Die Anreisezeit ist erforderlich.',
             'anreise_zeit.in' => 'Die Anreisezeit muss entweder "morning" oder "afternoon" sein.',
         ];

@@ -8,9 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 enum BookingStatus: string
 {
-    case PENDING = 'pending';
-    case CONFIRMED = 'confirmed';
-    case CANCELLED = 'cancelled';
+    case RESERVIERT = 'reserviert';
+    case GEBUCHT = 'gebucht';
 }
 
 class Booking extends Model
@@ -21,7 +20,6 @@ class Booking extends Model
         'beschreibung',
         'start_datum',
         'end_datum',
-        'gast_anzahl',
         'status',
     ];
 
@@ -31,7 +29,6 @@ class Booking extends Model
             'start_datum' => 'date',
             'end_datum' => 'date',
             'status' => BookingStatus::class,
-            'gast_anzahl' => 'integer',
         ];
     }
 
@@ -49,34 +46,25 @@ class Booking extends Model
     public function getStatusNameAttribute(): string
     {
         return match ($this->status) {
-            BookingStatus::PENDING => 'Ausstehend',
-            BookingStatus::CONFIRMED => 'Bestätigt',
-            BookingStatus::CANCELLED => 'Storniert',
+            BookingStatus::RESERVIERT => 'Reserviert',
+            BookingStatus::GEBUCHT => 'Gebucht',
         };
     }
 
     /**
-     * Check if booking is confirmed
+     * Check if booking is gebucht
      */
-    public function isConfirmed(): bool
+    public function isGebucht(): bool
     {
-        return $this->status === BookingStatus::CONFIRMED;
+        return $this->status === BookingStatus::GEBUCHT;
     }
 
     /**
-     * Check if booking is cancelled
+     * Check if booking is reserviert
      */
-    public function isCancelled(): bool
+    public function isReserviert(): bool
     {
-        return $this->status === BookingStatus::CANCELLED;
-    }
-
-    /**
-     * Check if booking is pending
-     */
-    public function isPending(): bool
-    {
-        return $this->status === BookingStatus::PENDING;
+        return $this->status === BookingStatus::RESERVIERT;
     }
 
     /**
@@ -166,27 +154,19 @@ class Booking extends Model
     }
 
     /**
-     * Scope to get confirmed bookings only
+     * Scope to get gebucht bookings only
      */
-    public function scopeConfirmed($query)
+    public function scopeGebucht($query)
     {
-        return $query->where('status', BookingStatus::CONFIRMED);
+        return $query->where('status', BookingStatus::GEBUCHT);
     }
 
     /**
-     * Scope to get pending bookings only
+     * Scope to get reserviert bookings only
      */
-    public function scopePending($query)
+    public function scopeReserviert($query)
     {
-        return $query->where('status', BookingStatus::PENDING);
-    }
-
-    /**
-     * Scope to get cancelled bookings only
-     */
-    public function scopeCancelled($query)
-    {
-        return $query->where('status', BookingStatus::CANCELLED);
+        return $query->where('status', BookingStatus::RESERVIERT);
     }
 
     /**

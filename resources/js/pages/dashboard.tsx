@@ -1,9 +1,8 @@
 import BookingDetailsModal from '@/components/booking-details-modal';
-import { BookingFormModal } from '@/components/booking-form-modal';
+import BookingFormModal from '@/components/booking-form-modal';
 import { MiniCalendar } from '@/components/mini-calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Calendar, Clock, Cloud, MapPin, TrendingUp, Users } from 'lucide-react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -17,7 +16,7 @@ interface CalendarDayBooking {
     beschreibung?: string;
     start_datum: string;
     end_datum: string;
-    gast_anzahl: number;
+
     status: string;
     status_name: string;
     duration: number;
@@ -46,7 +45,7 @@ interface CalendarDay {
 interface UpcomingBooking {
     id: number;
     titel: string;
-    gast_anzahl: number;
+
     status: string;
     status_name: string;
     date_range: string;
@@ -62,7 +61,7 @@ interface DashboardData {
     };
     statistics: {
         totalBookings: number;
-        totalGuests: number;
+
         upcomingBookings: number;
         monthlyRevenue: number;
     };
@@ -100,12 +99,7 @@ interface Props {
     weatherData?: WeatherData;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-];
+
 
 // (helper entfernt; nicht genutzt)
 
@@ -271,12 +265,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                     <p className="text-xs text-white/70">In diesem Monat</p>
                 </>
             ),
-            totalGuests: (
-                <>
-                    <div className="text-2xl font-bold">{formatGermanNumber(statistics.totalGuests)}</div>
-                    <p className="text-xs text-white/70">Gesamtanzahl</p>
-                </>
-            ),
+
             upcomingBookings: (
                 <>
                     <div className="text-2xl font-bold">{formatGermanNumber(statistics.upcomingBookings)}</div>
@@ -295,10 +284,10 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
     }, [dashboardData.statistics]);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout>
             <Head title="Dashboard" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl">
                 {/* Willkommenstext */}
                 <div className="space-y-2">
                     <h1 className="glass-heading text-2xl font-bold tracking-tight">Dashboard</h1>
@@ -317,15 +306,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                         </CardContent>
                     </Card>
 
-                    <Card className="glass-card h-full">
-                        <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="glass-card-title text-sm font-medium">Gäste</CardTitle>
-                            <Users className="h-4 w-4 text-white/70" />
-                        </CardHeader>
-                        <CardContent className="glass-card-content">
-                            {statisticsDisplay.totalGuests}
-                        </CardContent>
-                    </Card>
+
 
                     <Card className="glass-card h-full">
                         <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
@@ -392,7 +373,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                                                         beschreibung: '',
                                                         start_datum: new Date().toISOString().slice(0, 10),
                                                         end_datum: new Date().toISOString().slice(0, 10),
-                                                        gast_anzahl: b.gast_anzahl,
+
                                                         status: b.status,
                                                         status_name: b.status_name,
                                                         duration: 1,
@@ -431,7 +412,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-sm font-medium text-white">{formatGermanNumber(b.gast_anzahl)} Gäste</p>
+
                                             <p className="text-xs text-white/70">{b.status_name}</p>
                                         </div>
                                     </button>

@@ -28,7 +28,6 @@ class StoreBookingRequest extends FormRequest
             'beschreibung' => 'nullable|string|max:1000',
             'start_datum' => 'required|date|after_or_equal:today',
             'end_datum' => 'required|date|after:start_datum',
-            'gast_anzahl' => 'required|integer|min:1|max:20',
             'anreise_zeit' => 'nullable|in:morning,afternoon',
         ];
     }
@@ -54,11 +53,6 @@ class StoreBookingRequest extends FormRequest
             'end_datum.date' => 'Das Abreisedatum muss ein gültiges Datum sein.',
             'end_datum.after' => 'Das Abreisedatum muss nach dem Anreisedatum liegen.',
             
-            'gast_anzahl.required' => 'Die Anzahl der Gäste ist erforderlich.',
-            'gast_anzahl.integer' => 'Die Anzahl der Gäste muss eine ganze Zahl sein.',
-            'gast_anzahl.min' => 'Es muss mindestens 1 Gast angegeben werden.',
-            'gast_anzahl.max' => 'Es können maximal 20 Gäste angegeben werden.',
-            
             'anreise_zeit.in' => 'Die Anreisezeit muss vormittags oder nachmittags sein.',
         ];
     }
@@ -73,7 +67,6 @@ class StoreBookingRequest extends FormRequest
             'beschreibung' => 'Beschreibung',
             'start_datum' => 'Anreisedatum',
             'end_datum' => 'Abreisedatum',
-            'gast_anzahl' => 'Gästeanzahl',
             'anreise_zeit' => 'Anreisezeit',
         ];
     }
@@ -88,7 +81,7 @@ class StoreBookingRequest extends FormRequest
             $endDate = Carbon::parse($this->end_datum);
 
             // Check for overlapping bookings (except for arrival/departure days)
-            $overlappingBookings = Booking::confirmed()
+            $overlappingBookings = Booking::gebucht()
                 ->where(function ($query) use ($startDate, $endDate) {
                     $query->where(function ($q) use ($startDate, $endDate) {
                         // Complete overlap
