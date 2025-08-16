@@ -31,21 +31,23 @@ interface Props {
 export default function AdminUsersShow({ user }: Props) {
     const getRoleBadge = (role: string) => {
         return role === 'admin' ? (
-            <Badge variant="default" className="border-purple-200 bg-purple-100 text-purple-800">
+            <Badge variant="outline" className="border-purple-400/30 bg-purple-500/20 text-purple-300">
                 Administrator
             </Badge>
         ) : (
-            <Badge variant="outline">Benutzer</Badge>
+            <Badge variant="outline" className="border-white/30 bg-white/20 text-white/80">
+                Benutzer
+            </Badge>
         );
     };
 
     const getStatusBadge = (isActive: boolean) => {
         return isActive ? (
-            <Badge variant="default" className="border-green-200 bg-green-100 text-green-800">
+            <Badge variant="outline" className="border-green-400/30 bg-green-500/20 text-green-300">
                 Aktiv
             </Badge>
         ) : (
-            <Badge variant="outline" className="text-gray-500">
+            <Badge variant="outline" className="border-white/30 bg-white/10 text-white/50">
                 Inaktiv
             </Badge>
         );
@@ -68,17 +70,17 @@ export default function AdminUsersShow({ user }: Props) {
                 {/* Header */}
                 <div className="flex items-center gap-4">
                     <Link href="/admin/users">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/20">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Zurück zur Übersicht
                         </Button>
                     </Link>
                     <div className="flex-1">
-                        <h1 className="text-3xl font-bold tracking-tight">{user.name}</h1>
-                        <p className="text-muted-foreground">Benutzerdetails und Buchungshistorie</p>
+                        <h1 className="glass-heading text-3xl font-bold tracking-tight">{user.name}</h1>
+                        <p className="glass-text">Benutzerdetails und Buchungshistorie</p>
                     </div>
                     <Link href={`/admin/users/${user.id}/edit`}>
-                        <Button className="flex items-center gap-2">
+                        <Button className="glass-button flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30">
                             <Edit className="h-4 w-4" />
                             Bearbeiten
                         </Button>
@@ -87,15 +89,15 @@ export default function AdminUsersShow({ user }: Props) {
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {/* User Information */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <User className="h-5 w-5" />
+                    <Card className="glass-card">
+                        <CardHeader className="glass-card-header">
+                            <CardTitle className="glass-card-title flex items-center gap-2">
+                                <User className="h-5 w-5 text-white/70" />
                                 Benutzerinformationen
                             </CardTitle>
-                            <CardDescription>Grundlegende Informationen über den Benutzer</CardDescription>
+                            <CardDescription className="glass-card-description">Grundlegende Informationen über den Benutzer</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="glass-card-content space-y-4">
                             <div className="flex items-center gap-2">
                                 <span className="font-medium">Name:</span>
                                 <span>{user.name}</span>

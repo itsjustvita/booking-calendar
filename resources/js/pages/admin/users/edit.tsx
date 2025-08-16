@@ -60,28 +60,28 @@ export default function AdminUsersEdit({ user }: Props) {
                 {/* Header */}
                 <div className="flex items-center gap-4">
                     <Link href="/admin/users">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/20">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Zurück zur Übersicht
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Benutzer bearbeiten</h1>
-                        <p className="text-muted-foreground">Bearbeiten Sie die Daten von {user.name}</p>
+                        <h1 className="glass-heading text-3xl font-bold tracking-tight">Benutzer bearbeiten</h1>
+                        <p className="glass-text">Bearbeiten Sie die Daten von {user.name}</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {/* User Data Form */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <PencilLine className="h-5 w-5" />
+                    <Card className="glass-card">
+                        <CardHeader className="glass-card-header">
+                            <CardTitle className="glass-card-title flex items-center gap-2">
+                                <PencilLine className="h-5 w-5 text-white/70" />
                                 Benutzerdaten
                             </CardTitle>
-                            <CardDescription>Bearbeiten Sie die grundlegenden Informationen des Benutzers</CardDescription>
+                            <CardDescription className="glass-card-description">Bearbeiten Sie die grundlegenden Informationen des Benutzers</CardDescription>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="glass-card-content">
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 {/* Name */}
                                 <div>

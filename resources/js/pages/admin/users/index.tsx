@@ -47,22 +47,24 @@ export default function AdminUsersIndex({ users }: Props) {
 
     const getRoleBadge = (role: string) => {
         return role === 'admin' ? (
-            <Badge variant="default" className="border-purple-200 bg-purple-100 text-purple-800">
+            <Badge variant="outline" className="border-purple-400/30 bg-purple-500/20 text-purple-300">
                 Administrator
             </Badge>
         ) : (
-            <Badge variant="outline">Benutzer</Badge>
+            <Badge variant="outline" className="border-white/30 bg-white/20 text-white/80">
+                Benutzer
+            </Badge>
         );
     };
 
     const getStatusBadge = (isActive: boolean) => {
         return isActive ? (
-            <Badge variant="default" className="border-green-200 bg-green-100 text-green-800">
+            <Badge variant="outline" className="border-green-400/30 bg-green-500/20 text-green-300">
                 <UserCheck className="mr-1 h-3 w-3" />
                 Aktiv
             </Badge>
         ) : (
-            <Badge variant="outline" className="text-gray-500">
+            <Badge variant="outline" className="border-white/30 bg-white/10 text-white/50">
                 <UserX className="mr-1 h-3 w-3" />
                 Inaktiv
             </Badge>
@@ -76,11 +78,11 @@ export default function AdminUsersIndex({ users }: Props) {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Benutzerverwaltung</h1>
-                        <p className="text-muted-foreground">Verwalten Sie alle Benutzer und deren Berechtigungen</p>
+                        <h1 className="glass-heading text-3xl font-bold tracking-tight">Benutzerverwaltung</h1>
+                        <p className="glass-text">Verwalten Sie alle Benutzer und deren Berechtigungen</p>
                     </div>
                     <Link href="/admin/users/create">
-                        <Button className="flex items-center gap-2">
+                        <Button className="glass-button flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30">
                             <Plus className="h-4 w-4" />
                             Neuen Benutzer erstellen
                         </Button>
@@ -88,46 +90,46 @@ export default function AdminUsersIndex({ users }: Props) {
                 </div>
 
                 {/* Search */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Search className="h-5 w-5" />
+                <Card className="glass-card">
+                    <CardHeader className="glass-card-header">
+                        <CardTitle className="glass-card-title flex items-center gap-2">
+                            <Search className="h-5 w-5 text-white/70" />
                             Benutzer suchen
                         </CardTitle>
-                        <CardDescription>Suchen Sie nach Namen oder E-Mail-Adresse</CardDescription>
+                        <CardDescription className="glass-card-description">Suchen Sie nach Namen oder E-Mail-Adresse</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="glass-card-content">
                         <Input
                             placeholder="Name oder E-Mail eingeben..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="max-w-md"
+                            className="max-w-md border-white/30 bg-white/20 text-white placeholder:text-white/60"
                         />
                     </CardContent>
                 </Card>
 
                 {/* Users List */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Users className="h-5 w-5" />
+                <Card className="glass-card">
+                    <CardHeader className="glass-card-header">
+                        <CardTitle className="glass-card-title flex items-center gap-2">
+                            <Users className="h-5 w-5 text-white/70" />
                             Benutzer ({filteredUsers.length} von {users.total})
                         </CardTitle>
-                        <CardDescription>Alle registrierten Benutzer des Systems</CardDescription>
+                        <CardDescription className="glass-card-description">Alle registrierten Benutzer des Systems</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="glass-card-content">
                         <div className="space-y-4">
                             {filteredUsers.map((user) => (
-                                <div key={user.id} className="flex items-center justify-between rounded-lg border p-4">
+                                <div key={user.id} className="flex items-center justify-between rounded-lg border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
                                     <div className="flex items-center gap-4">
                                         <div className="flex-1">
                                             <div className="mb-1 flex items-center gap-2">
-                                                <h3 className="font-semibold">{user.name}</h3>
+                                                <h3 className="font-semibold text-white">{user.name}</h3>
                                                 {getRoleBadge(user.role)}
                                                 {getStatusBadge(user.is_active)}
                                             </div>
-                                            <p className="text-sm text-gray-600">{user.email}</p>
-                                            <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                                            <p className="text-sm text-white/70">{user.email}</p>
+                                            <div className="mt-2 flex items-center gap-4 text-xs text-white/50">
                                                 <span>Erstellt: {new Date(user.created_at).toLocaleDateString('de-DE')}</span>
                                                 <span>
                                                     {user.bookings_count} Buchung{user.bookings_count !== 1 ? 'en' : ''}
@@ -137,12 +139,12 @@ export default function AdminUsersIndex({ users }: Props) {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Link href={`/admin/users/${user.id}`}>
-                                            <Button variant="outline" size="sm">
+                                            <Button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/20">
                                                 <Eye className="h-4 w-4" />
                                             </Button>
                                         </Link>
                                         <Link href={`/admin/users/${user.id}/edit`}>
-                                            <Button variant="outline" size="sm">
+                                            <Button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/20">
                                                 <Edit className="h-4 w-4" />
                                             </Button>
                                         </Link>
@@ -151,7 +153,9 @@ export default function AdminUsersIndex({ users }: Props) {
                                             size="sm"
                                             onClick={() => handleToggleActive(user.id)}
                                             className={
-                                                user.is_active ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700'
+                                                user.is_active 
+                                                    ? 'border-orange-400/30 text-orange-300 hover:bg-orange-500/20' 
+                                                    : 'border-green-400/30 text-green-300 hover:bg-green-500/20'
                                             }
                                         >
                                             {user.is_active ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
@@ -160,7 +164,7 @@ export default function AdminUsersIndex({ users }: Props) {
                                             variant="outline"
                                             size="sm"
                                             onClick={() => handleDeleteUser(user.id)}
-                                            className="text-red-600 hover:text-red-700"
+                                            className="border-red-400/30 text-red-300 hover:bg-red-500/20"
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>

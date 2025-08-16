@@ -28,46 +28,46 @@ export default function AdminUsersCreate() {
                 {/* Header */}
                 <div className="flex items-center gap-4">
                     <Link href="/admin/users">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/20">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Zurück zur Übersicht
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Neuen Benutzer erstellen</h1>
-                        <p className="text-muted-foreground">Erstellen Sie einen neuen Benutzer für das System</p>
+                        <h1 className="glass-heading text-3xl font-bold tracking-tight">Neuen Benutzer erstellen</h1>
+                        <p className="glass-text">Erstellen Sie einen neuen Benutzer für das System</p>
                     </div>
                 </div>
 
                 {/* Form */}
-                <Card className="max-w-2xl">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <UserPlus className="h-5 w-5" />
+                <Card className="glass-card max-w-2xl">
+                    <CardHeader className="glass-card-header">
+                        <CardTitle className="glass-card-title flex items-center gap-2">
+                            <UserPlus className="h-5 w-5 text-white/70" />
                             Benutzerdaten
                         </CardTitle>
-                        <CardDescription>Füllen Sie alle erforderlichen Felder aus, um einen neuen Benutzer zu erstellen</CardDescription>
+                        <CardDescription className="glass-card-description">Füllen Sie alle erforderlichen Felder aus, um einen neuen Benutzer zu erstellen</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="glass-card-content">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Name */}
                             <div>
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="name" className="text-white">Name</Label>
                                 <Input
                                     id="name"
                                     type="text"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
                                     placeholder="Vollständiger Name"
-                                    className={errors.name ? 'border-red-500' : ''}
+                                    className={`border-white/30 bg-white/20 text-white placeholder:text-white/60 ${errors.name ? 'border-red-500' : ''}`}
                                 />
-                                {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
+                                {errors.name && <p className="mt-1 text-sm text-red-400">{errors.name}</p>}
                             </div>
 
                             {/* Email */}
                             <div>
-                                <Label htmlFor="email" className="flex items-center gap-2">
-                                    <Mail className="h-4 w-4" />
+                                <Label htmlFor="email" className="flex items-center gap-2 text-white">
+                                    <Mail className="h-4 w-4 text-white/70" />
                                     E-Mail-Adresse
                                 </Label>
                                 <Input
@@ -76,15 +76,15 @@ export default function AdminUsersCreate() {
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
                                     placeholder="benutzer@beispiel.de"
-                                    className={errors.email ? 'border-red-500' : ''}
+                                    className={`border-white/30 bg-white/20 text-white placeholder:text-white/60 ${errors.email ? 'border-red-500' : ''}`}
                                 />
-                                {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
+                                {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email}</p>}
                             </div>
 
                             {/* Password */}
                             <div>
-                                <Label htmlFor="password" className="flex items-center gap-2">
-                                    <Lock className="h-4 w-4" />
+                                <Label htmlFor="password" className="flex items-center gap-2 text-white">
+                                    <Lock className="h-4 w-4 text-white/70" />
                                     Passwort
                                 </Label>
                                 <Input
@@ -93,41 +93,41 @@ export default function AdminUsersCreate() {
                                     value={data.password}
                                     onChange={(e) => setData('password', e.target.value)}
                                     placeholder="Sicheres Passwort"
-                                    className={errors.password ? 'border-red-500' : ''}
+                                    className={`border-white/30 bg-white/20 text-white placeholder:text-white/60 ${errors.password ? 'border-red-500' : ''}`}
                                 />
-                                {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
+                                {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password}</p>}
                             </div>
 
                             {/* Password Confirmation */}
                             <div>
-                                <Label htmlFor="password_confirmation">Passwort bestätigen</Label>
+                                <Label htmlFor="password_confirmation" className="text-white">Passwort bestätigen</Label>
                                 <Input
                                     id="password_confirmation"
                                     type="password"
                                     value={data.password_confirmation}
                                     onChange={(e) => setData('password_confirmation', e.target.value)}
                                     placeholder="Passwort wiederholen"
-                                    className={errors.password_confirmation ? 'border-red-500' : ''}
+                                    className={`border-white/30 bg-white/20 text-white placeholder:text-white/60 ${errors.password_confirmation ? 'border-red-500' : ''}`}
                                 />
-                                {errors.password_confirmation && <p className="mt-1 text-sm text-red-500">{errors.password_confirmation}</p>}
+                                {errors.password_confirmation && <p className="mt-1 text-sm text-red-400">{errors.password_confirmation}</p>}
                             </div>
 
                             {/* Role */}
                             <div>
-                                <Label htmlFor="role" className="flex items-center gap-2">
-                                    <Shield className="h-4 w-4" />
+                                <Label htmlFor="role" className="flex items-center gap-2 text-white">
+                                    <Shield className="h-4 w-4 text-white/70" />
                                     Rolle
                                 </Label>
                                 <select
                                     id="role"
                                     value={data.role}
                                     onChange={(e) => setData('role', e.target.value as 'user' | 'admin')}
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="flex h-10 w-full rounded-md border border-white/30 bg-white/20 px-3 py-2 text-sm text-white ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-white/60 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option value="user">Benutzer</option>
                                     <option value="admin">Administrator</option>
                                 </select>
-                                {errors.role && <p className="mt-1 text-sm text-red-500">{errors.role}</p>}
+                                {errors.role && <p className="mt-1 text-sm text-red-400">{errors.role}</p>}
                             </div>
 
                             {/* Active Status */}
@@ -137,19 +137,19 @@ export default function AdminUsersCreate() {
                                     type="checkbox"
                                     checked={data.is_active}
                                     onChange={(e) => setData('is_active', e.target.checked)}
-                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    className="h-4 w-4 rounded border-white/30 bg-white/20 text-white focus:ring-white/40"
                                 />
-                                <Label htmlFor="is_active">Benutzer ist aktiv</Label>
+                                <Label htmlFor="is_active" className="text-white">Benutzer ist aktiv</Label>
                             </div>
 
                             {/* Submit */}
                             <div className="flex gap-4">
                                 <Link href="/admin/users">
-                                    <Button type="button" variant="outline">
+                                    <Button type="button" variant="outline" className="border-white/30 text-white hover:bg-white/20">
                                         Abbrechen
                                     </Button>
                                 </Link>
-                                <Button type="submit" disabled={processing} className="flex items-center gap-2">
+                                <Button type="submit" disabled={processing} className="glass-button flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30">
                                     <UserPlus className="h-4 w-4" />
                                     {processing ? 'Wird erstellt...' : 'Benutzer erstellen'}
                                 </Button>
