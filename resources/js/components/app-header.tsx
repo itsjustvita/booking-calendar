@@ -9,7 +9,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Calendar, LayoutGrid, List, Menu } from 'lucide-react';
+import { Calendar, LayoutGrid, List, Menu, CheckSquare } from 'lucide-react';
 
 
 const mainNavItems: NavItem[] = [
@@ -27,6 +27,11 @@ const mainNavItems: NavItem[] = [
         title: 'Buchungsübersicht',
         href: '/booking-overview',
         icon: List,
+    },
+    {
+        title: 'To-Do Liste',
+        href: '/todos',
+        icon: CheckSquare,
     },
 ];
 
