@@ -14,6 +14,18 @@ import { Separator } from '@/components/ui/separator';
 import { CheckCircle, Circle, Plus, MessageSquare, Calendar, User, Clock, Trash2, Edit, Eye } from 'lucide-react';
 import { formatGermanDate, formatGermanDateTime } from '@/lib/utils';
 
+interface TodoComment {
+    id: number;
+    kommentar: string;
+    created_at: string;
+    parent_id?: number;
+    user: {
+        id: number;
+        name: string;
+    };
+    replies?: TodoComment[];
+}
+
 interface Todo {
     id: number;
     titel: string;
@@ -32,15 +44,7 @@ interface Todo {
         id: number;
         name: string;
     };
-    comments: Array<{
-        id: number;
-        kommentar: string;
-        created_at: string;
-        user: {
-            id: number;
-            name: string;
-        };
-    }>;
+    comments: TodoComment[];
 }
 
 interface TodoStatistics {
@@ -57,8 +61,10 @@ interface Props {
 
 export default function TodosIndex({ todos, statistics }: Props) {
     const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
+    const [selectedComment, setSelectedComment] = useState<TodoComment | null>(null);
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
+    const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
     const [formData, setFormData] = useState({
         titel: '',
         beschreibung: '',
@@ -66,6 +72,7 @@ export default function TodosIndex({ todos, statistics }: Props) {
         faelligkeitsdatum: '',
     });
     const [commentText, setCommentText] = useState('');
+    const [replyText, setReplyText] = useState('');
 
     const resetForm = () => {
         setFormData({
@@ -97,6 +104,21 @@ export default function TodosIndex({ todos, statistics }: Props) {
                 setIsCommentDialogOpen(false);
                 setCommentText('');
                 setSelectedTodo(null);
+            },
+        });
+    };
+
+    const handleAddReply = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedComment) return;
+        
+        router.post(`/comments/${selectedComment.id}/reply`, {
+            kommentar: replyText,
+        }, {
+            onSuccess: () => {
+                setIsReplyDialogOpen(false);
+                setReplyText('');
+                setSelectedComment(null);
             },
         });
     };
@@ -350,14 +372,47 @@ export default function TodosIndex({ todos, statistics }: Props) {
                                                             <div className="text-xs font-medium text-white/70">Kommentare:</div>
                                                             <div className="space-y-2 max-h-32 overflow-y-auto">
                                                                 {todo.comments.slice(0, 3).map((comment) => (
-                                                                    <div key={comment.id} className="p-2 bg-white/5 rounded border border-white/10">
-                                                                        <p className="text-xs text-white/80">{comment.kommentar}</p>
-                                                                        <div className="flex items-center space-x-2 mt-1 text-xs text-white/50">
-                                                                            <User className="h-3 w-3" />
-                                                                            <span>{comment.user.name}</span>
-                                                                            <span>•</span>
-                                                                            <span>{formatGermanDateTime(comment.created_at)}</span>
+                                                                    <div key={comment.id} className="space-y-2">
+                                                                        {/* Hauptkommentar */}
+                                                                        <div className="p-2 bg-white/5 rounded border border-white/10">
+                                                                            <p className="text-xs text-white/80">{comment.kommentar}</p>
+                                                                            <div className="flex items-center justify-between mt-1">
+                                                                                <div className="flex items-center space-x-2 text-xs text-white/50">
+                                                                                    <User className="h-3 w-3" />
+                                                                                    <span>{comment.user.name}</span>
+                                                                                    <span>•</span>
+                                                                                    <span>{formatGermanDateTime(comment.created_at)}</span>
+                                                                                </div>
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    variant="ghost"
+                                                                                    onClick={() => {
+                                                                                        setSelectedComment(comment);
+                                                                                        setIsReplyDialogOpen(true);
+                                                                                    }}
+                                                                                    className="text-xs text-white/50 hover:text-white hover:bg-white/10"
+                                                                                >
+                                                                                    Antworten
+                                                                                </Button>
+                                                                            </div>
                                                                         </div>
+                                                                        
+                                                                        {/* Unterkommentare */}
+                                                                        {comment.replies && comment.replies.length > 0 && (
+                                                                            <div className="ml-4 space-y-1">
+                                                                                {comment.replies.map((reply) => (
+                                                                                    <div key={reply.id} className="p-2 bg-white/3 rounded border border-white/5">
+                                                                                        <p className="text-xs text-white/70">{reply.kommentar}</p>
+                                                                                        <div className="flex items-center space-x-2 mt-1 text-xs text-white/40">
+                                                                                            <User className="h-3 w-3" />
+                                                                                            <span>{reply.user.name}</span>
+                                                                                            <span>•</span>
+                                                                                            <span>{formatGermanDateTime(reply.created_at)}</span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 ))}
                                                                 {todo.comments.length > 3 && (
@@ -440,6 +495,45 @@ export default function TodosIndex({ todos, statistics }: Props) {
                                 </Button>
                                 <Button type="submit" className="bg-white/20 hover:bg-white/30 text-white border-white/20">
                                     Kommentar hinzufügen
+                                </Button>
+                            </div>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Reply Dialog */}
+                <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
+                    <DialogContent className="bg-white/10 backdrop-blur-sm border-white/20">
+                        <DialogHeader>
+                            <DialogTitle className="text-white">Antwort hinzufügen</DialogTitle>
+                            <DialogDescription className="text-white/70">
+                                Antworten Sie auf den Kommentar von {selectedComment?.user.name}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleAddReply} className="space-y-4">
+                            <div>
+                                <Label htmlFor="reply" className="text-white">Antwort</Label>
+                                <Textarea
+                                    id="reply"
+                                    value={replyText}
+                                    onChange={(e) => setReplyText(e.target.value)}
+                                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                                    placeholder="Ihre Antwort..."
+                                    rows={3}
+                                    required
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsReplyDialogOpen(false)}
+                                    className="border-white/20 text-white hover:bg-white/10"
+                                >
+                                    Abbrechen
+                                </Button>
+                                <Button type="submit" className="bg-white/20 hover:bg-white/30 text-white border-white/20">
+                                    Antwort hinzufügen
                                 </Button>
                             </div>
                         </form>

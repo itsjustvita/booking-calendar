@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Todo;
+use App\Models\TodoComment;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -22,6 +23,27 @@ class TodoCommentFactory extends Factory
             'kommentar' => fake()->paragraph(),
             'todo_id' => Todo::factory(),
             'user_id' => User::factory(),
+            'parent_id' => null,
         ];
+    }
+
+    /**
+     * Indicate that the comment is a reply to another comment.
+     */
+    public function reply(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'parent_id' => TodoComment::factory(),
+        ]);
+    }
+
+    /**
+     * Indicate that the comment is a top-level comment.
+     */
+    public function topLevel(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'parent_id' => null,
+        ]);
     }
 }

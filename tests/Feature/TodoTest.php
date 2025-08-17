@@ -118,6 +118,69 @@ it('validiert Kommentar-Inhalt', function () {
     $response->assertSessionHasErrors(['kommentar']);
 });
 
+it('fügt eine Antwort zu einem Kommentar hinzu', function () {
+    $todo = Todo::factory()->create([
+        'created_by' => $this->user->id,
+    ]);
+    
+    $comment = TodoComment::factory()->create([
+        'todo_id' => $todo->id,
+        'user_id' => $this->admin->id,
+    ]);
+
+    $response = $this->actingAs($this->user)->post("/comments/{$comment->id}/reply", [
+        'kommentar' => 'Test Antwort',
+    ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('todo_comments', [
+        'todo_id' => $todo->id,
+        'user_id' => $this->user->id,
+        'parent_id' => $comment->id,
+        'kommentar' => 'Test Antwort',
+    ]);
+});
+
+it('verhindert Antworten auf Unterkommentare', function () {
+    $todo = Todo::factory()->create([
+        'created_by' => $this->user->id,
+    ]);
+    
+    $parentComment = TodoComment::factory()->create([
+        'todo_id' => $todo->id,
+        'user_id' => $this->admin->id,
+    ]);
+    
+    $reply = TodoComment::factory()->create([
+        'todo_id' => $todo->id,
+        'user_id' => $this->user->id,
+        'parent_id' => $parentComment->id,
+    ]);
+
+    $response = $this->actingAs($this->admin)->post("/comments/{$reply->id}/reply", [
+        'kommentar' => 'Test Antwort auf Antwort',
+    ]);
+
+    $response->assertStatus(400);
+});
+
+it('validiert Antwort-Inhalt', function () {
+    $todo = Todo::factory()->create([
+        'created_by' => $this->user->id,
+    ]);
+    
+    $comment = TodoComment::factory()->create([
+        'todo_id' => $todo->id,
+        'user_id' => $this->admin->id,
+    ]);
+
+    $response = $this->actingAs($this->user)->post("/comments/{$comment->id}/reply", [
+        'kommentar' => '',
+    ]);
+
+    $response->assertSessionHasErrors(['kommentar']);
+});
+
 it('löscht einen Kommentar als Ersteller', function () {
     $comment = TodoComment::factory()->create([
         'user_id' => $this->user->id,

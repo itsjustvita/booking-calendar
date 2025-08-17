@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTodoCommentRequest;
+use App\Http\Requests\StoreTodoReplyRequest;
 use App\Models\Todo;
 use App\Models\TodoComment;
 
@@ -20,6 +21,26 @@ class TodoCommentController extends Controller
 
         return redirect()->back()
             ->with('success', 'Kommentar erfolgreich hinzugefügt.');
+    }
+
+    /**
+     * Store a reply to a comment.
+     */
+    public function reply(StoreTodoReplyRequest $request, TodoComment $comment)
+    {
+        // Prüfe, ob der Kommentar bereits eine Antwort hat (nur 2 Ebenen erlaubt)
+        if ($comment->parent_id !== null) {
+            abort(400, 'Unterkommentare können keine Antworten haben.');
+        }
+
+        $comment->replies()->create([
+            'todo_id' => $comment->todo_id,
+            'user_id' => auth()->id(),
+            'kommentar' => $request->kommentar,
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Antwort erfolgreich hinzugefügt.');
     }
 
     /**

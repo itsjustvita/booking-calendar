@@ -40,7 +40,17 @@ class Todo extends Model
 
     public function comments(): HasMany
     {
-        return $this->hasMany(TodoComment::class)->orderBy('created_at', 'desc');
+        return $this->hasMany(TodoComment::class)
+            ->topLevel()
+            ->with(['replies.user', 'user'])
+            ->orderBy('created_at', 'desc');
+    }
+
+    public function allComments(): HasMany
+    {
+        return $this->hasMany(TodoComment::class)
+            ->with(['replies.user', 'user'])
+            ->orderBy('created_at', 'desc');
     }
 
     // Scopes
