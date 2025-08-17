@@ -96,7 +96,7 @@ export default function AdminUsersIndex({ users }: Props) {
                             <Search className="h-5 w-5 text-white/70" />
                             Benutzer suchen
                         </CardTitle>
-                        <CardDescription className="glass-card-description">Suchen Sie nach Namen oder E-Mail-Adresse</CardDescription>
+                        <CardDescription className="glass-card-description text-white">Suchen Sie nach Namen oder E-Mail-Adresse</CardDescription>
                     </CardHeader>
                     <CardContent className="glass-card-content">
                         <Input
@@ -115,7 +115,7 @@ export default function AdminUsersIndex({ users }: Props) {
                             <Users className="h-5 w-5 text-white/70" />
                             Benutzer ({filteredUsers.length} von {users.total})
                         </CardTitle>
-                        <CardDescription className="glass-card-description">Alle registrierten Benutzer des Systems</CardDescription>
+                        <CardDescription className="glass-card-description text-white">Alle registrierten Benutzer des Systems</CardDescription>
                     </CardHeader>
                     <CardContent className="glass-card-content">
                         <div className="space-y-4">

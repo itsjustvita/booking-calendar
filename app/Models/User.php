@@ -30,6 +30,7 @@ class User extends Authenticatable
         'password',
         'role',
         'is_active',
+        'category_id',
     ];
 
     /**
@@ -87,6 +88,11 @@ class User extends Authenticatable
     public function todoComments(): HasMany
     {
         return $this->hasMany(TodoComment::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(UserCategory::class, 'category_id');
     }
 
     /**

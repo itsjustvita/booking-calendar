@@ -81,7 +81,7 @@ export function AppHeader() {
 
 
                     {/* Desktop Navigation */}
-                    <NavigationMenu className="ml-8 hidden lg:flex">
+                    <NavigationMenu className="hidden lg:flex">
                         <NavigationMenuList>
                             {mainNavItems.map((item) => (
                                 <NavigationMenuItem key={item.title}>
