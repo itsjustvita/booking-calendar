@@ -294,12 +294,12 @@ export default function TodosIndex({ todos, statistics }: Props) {
                         todos.map((todo) => (
                                     <div
                                         key={todo.id}
-                                        className={`p-4 rounded-lg border backdrop-blur-sm ${
+                                        className={`p-4 rounded-lg border backdrop-blur-md ${
                                             todo.status === 'erledigt'
-                                                ? 'bg-white/5 border-white/10'
+                                                ? 'bg-white/20 border-white/30'
                                                 : todo.is_overdue
-                                                ? 'bg-red-500/10 border-red-500/20'
-                                                : 'bg-white/10 border-white/20'
+                                                ? 'bg-red-500/20 border-red-500/40'
+                                                : 'bg-white/20 border-white/30'
                                         }`}
                                     >
                                         <div className="flex items-start justify-between">
