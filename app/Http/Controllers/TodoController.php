@@ -27,7 +27,7 @@ class TodoController extends Controller
             'ueberfaellig' => $todos->where('status', 'offen')->filter(fn ($todo) => $todo->is_overdue)->count(),
         ];
 
-        return Inertia::render('Todos/Index', [
+        return Inertia::render('todos/index', [
             'todos' => $todos,
             'statistics' => $statistics,
         ]);
@@ -38,7 +38,7 @@ class TodoController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Todos/Create');
+        return Inertia::render('todos/create');
     }
 
     /**
@@ -62,7 +62,7 @@ class TodoController extends Controller
     {
         $todo->load(['creator', 'completedBy', 'comments.user']);
 
-        return Inertia::render('Todos/Show', [
+        return Inertia::render('todos/show', [
             'todo' => $todo,
         ]);
     }
@@ -72,7 +72,7 @@ class TodoController extends Controller
      */
     public function edit(Todo $todo): Response
     {
-        return Inertia::render('Todos/Edit', [
+        return Inertia::render('todos/edit', [
             'todo' => $todo,
         ]);
     }

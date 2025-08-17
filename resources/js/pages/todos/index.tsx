@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { AppLayout } from '@/layouts/app-layout';
-import { Heading } from '@/components/heading';
+import AppLayout from '@/layouts/app-layout';
+import  Heading  from '@/components/heading';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

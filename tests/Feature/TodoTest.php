@@ -14,7 +14,7 @@ it('zeigt die To-Do Liste für authentifizierte Benutzer', function () {
 
     $response->assertSuccessful();
     $response->assertInertia(fn ($page) => $page
-        ->component('Todos/Index')
+        ->component('todos/index')
         ->has('todos')
         ->has('statistics')
     );
