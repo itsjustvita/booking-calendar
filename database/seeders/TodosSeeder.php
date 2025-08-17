@@ -24,40 +24,89 @@ class TodosSeeder extends Seeder
 
         $todos = [
             [
-                'titel' => 'Website-Design überarbeiten',
-                'beschreibung' => 'Das aktuelle Design der Website sollte modernisiert werden. Neue Farbpalette und Layout-Struktur implementieren.',
+                'titel' => 'Klopapier nachkaufen',
+                'beschreibung' => 'Das Klopapier in den Badezimmern ist fast aufgebraucht. Neue Packungen besorgen und in den Schränken verstauen.',
                 'prioritaet' => 3,
-                'faelligkeitsdatum' => now()->addDays(7),
+                'faelligkeitsdatum' => now()->addDays(2),
                 'status' => 'offen',
             ],
             [
-                'titel' => 'Datenbank-Backup erstellen',
-                'beschreibung' => 'Regelmäßiges Backup der Datenbank für Sicherheitszwecke.',
+                'titel' => 'Bettwäsche waschen',
+                'beschreibung' => 'Alle benutzten Bettwäsche-Sets sammeln und waschen. Neue Bettwäsche für die Betten bereitstellen.',
+                'prioritaet' => 2,
+                'faelligkeitsdatum' => now()->addDays(1),
+                'status' => 'offen',
+            ],
+            [
+                'titel' => 'Holz für Kamin nachlegen',
+                'beschreibung' => 'Der Holzvorrat im Schuppen ist niedrig. Neues Brennholz besorgen und trocken lagern.',
                 'prioritaet' => 2,
                 'faelligkeitsdatum' => now()->addDays(3),
                 'status' => 'offen',
             ],
             [
-                'titel' => 'API-Dokumentation aktualisieren',
-                'beschreibung' => 'Die API-Dokumentation ist veraltet und muss auf den neuesten Stand gebracht werden.',
-                'prioritaet' => 2,
-                'faelligkeitsdatum' => now()->addDays(14),
-                'status' => 'offen',
-            ],
-            [
-                'titel' => 'Unit-Tests schreiben',
-                'beschreibung' => 'Für die neuen Features müssen entsprechende Unit-Tests erstellt werden.',
+                'titel' => 'Kühlschrank reinigen',
+                'beschreibung' => 'Den Kühlschrank gründlich reinigen und abgelaufene Lebensmittel entsorgen. Neue Vorräte organisieren.',
                 'prioritaet' => 1,
-                'faelligkeitsdatum' => now()->addDays(21),
+                'faelligkeitsdatum' => now()->addDays(5),
                 'status' => 'offen',
             ],
             [
-                'titel' => 'Server-Monitoring einrichten',
-                'beschreibung' => 'Monitoring-Tools für Server-Performance und -Sicherheit installieren.',
-                'prioritaet' => 3,
-                'faelligkeitsdatum' => now()->addDays(5),
+                'titel' => 'Handtücher auffrischen',
+                'beschreibung' => 'Alle Handtücher waschen und neue Handtücher für die Gäste bereitstellen.',
+                'prioritaet' => 2,
+                'faelligkeitsdatum' => now()->addDays(1),
                 'status' => 'erledigt',
-                'completed_at' => now()->subDays(2),
+                'completed_at' => now()->subDays(1),
+            ],
+            [
+                'titel' => 'Gartenpflege',
+                'beschreibung' => 'Rasen mähen, Blumen gießen und Gartenmöbel reinigen. Terrasse fegen.',
+                'prioritaet' => 1,
+                'faelligkeitsdatum' => now()->addDays(7),
+                'status' => 'offen',
+            ],
+            [
+                'titel' => 'Spülmaschine reparieren',
+                'beschreibung' => 'Die Spülmaschine macht seltsame Geräusche. Techniker kontaktieren und Reparatur vereinbaren.',
+                'prioritaet' => 3,
+                'faelligkeitsdatum' => now()->addDays(1),
+                'status' => 'offen',
+            ],
+            [
+                'titel' => 'Vorratskammer aufräumen',
+                'beschreibung' => 'Die Vorratskammer ist unordentlich. Lebensmittel sortieren und abgelaufene Produkte entsorgen.',
+                'prioritaet' => 1,
+                'faelligkeitsdatum' => now()->addDays(4),
+                'status' => 'offen',
+            ],
+            [
+                'titel' => 'Badezimmer reinigen',
+                'beschreibung' => 'Alle Badezimmer gründlich reinigen. Duschvorhänge waschen und neue Seife bereitstellen.',
+                'prioritaet' => 2,
+                'faelligkeitsdatum' => now()->addDays(2),
+                'status' => 'offen',
+            ],
+            [
+                'titel' => 'WLAN-Passwort ändern',
+                'beschreibung' => 'Das WLAN-Passwort ist seit Monaten gleich. Aus Sicherheitsgründen ein neues Passwort setzen.',
+                'prioritaet' => 2,
+                'faelligkeitsdatum' => now()->addDays(3),
+                'status' => 'offen',
+            ],
+            [
+                'titel' => 'Gästebuch aktualisieren',
+                'beschreibung' => 'Neue Seiten ins Gästebuch einlegen und alte Einträge digitalisieren.',
+                'prioritaet' => 1,
+                'faelligkeitsdatum' => now()->addDays(10),
+                'status' => 'offen',
+            ],
+            [
+                'titel' => 'Schlüssel organisieren',
+                'beschreibung' => 'Alle Ersatzschlüssel sortieren und beschriften. Schlüsselbox überprüfen.',
+                'prioritaet' => 1,
+                'faelligkeitsdatum' => now()->addDays(6),
+                'status' => 'offen',
             ],
         ];
 
@@ -87,29 +136,34 @@ class TodosSeeder extends Seeder
                 TodoComment::create([
                     'todo_id' => $todo->id,
                     'user_id' => $commentUser->id,
-                    'kommentar' => $this->getRandomComment(),
+                    'kommentar' => $this->getRandomHuettenComment(),
                 ]);
             }
         }
 
-        $this->command->info('To-Dos erfolgreich erstellt!');
+        $this->command->info('Hüttenspezifische To-Dos erfolgreich erstellt!');
         $this->command->info('Erstellte To-Dos: '.count($todos));
         $this->command->info('Erstellte Kommentare: '.TodoComment::count());
     }
 
-    private function getRandomComment(): string
+    private function getRandomHuettenComment(): string
     {
         $comments = [
-            'Gute Idee! Das sollte priorisiert werden.',
-            'Ich arbeite gerade daran.',
+            'Das ist wirklich wichtig für die Gäste!',
+            'Sollte ich heute noch erledigen.',
             'Kann ich dabei helfen?',
             'Das ist bereits in Bearbeitung.',
-            'Sehr wichtig für das Projekt.',
-            'Sollte bis Ende der Woche fertig sein.',
+            'Sehr wichtig für die Hütte.',
+            'Sollte bis morgen fertig sein.',
             'Benötige weitere Informationen dazu.',
             'Perfekt, das ist genau was wir brauchen.',
             'Können wir das nächste Woche besprechen?',
             'Das ist ein guter Ansatz.',
+            'Gäste werden das zu schätzen wissen.',
+            'Sollte priorisiert werden.',
+            'Ich kümmere mich darum.',
+            'Das ist für die nächsten Gäste wichtig.',
+            'Kann ich das morgen machen?',
         ];
 
         return $comments[array_rand($comments)];
