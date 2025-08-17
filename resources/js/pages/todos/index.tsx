@@ -343,6 +343,31 @@ export default function TodosIndex({ todos, statistics }: Props) {
                                                             </div>
                                                         )}
                                                     </div>
+                                                    
+                                                    {/* Kommentare anzeigen */}
+                                                    {todo.comments.length > 0 && (
+                                                        <div className="mt-3 space-y-2">
+                                                            <div className="text-xs font-medium text-white/70">Kommentare:</div>
+                                                            <div className="space-y-2 max-h-32 overflow-y-auto">
+                                                                {todo.comments.slice(0, 3).map((comment) => (
+                                                                    <div key={comment.id} className="p-2 bg-white/5 rounded border border-white/10">
+                                                                        <p className="text-xs text-white/80">{comment.kommentar}</p>
+                                                                        <div className="flex items-center space-x-2 mt-1 text-xs text-white/50">
+                                                                            <User className="h-3 w-3" />
+                                                                            <span>{comment.user.name}</span>
+                                                                            <span>•</span>
+                                                                            <span>{formatGermanDateTime(comment.created_at)}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                                {todo.comments.length > 3 && (
+                                                                    <div className="text-xs text-white/50 text-center">
+                                                                        +{todo.comments.length - 3} weitere Kommentare
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="flex items-center space-x-1 ml-4">
