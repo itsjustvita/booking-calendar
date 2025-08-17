@@ -25,12 +25,16 @@ export default function AdminUsersCreate({ categories }: Props) {
         password_confirmation: '',
         role: 'user',
         is_active: true,
-        category_id: '',
+        category_id: 'none',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/admin/users');
+        const submitData = {
+            ...data,
+            category_id: data.category_id === 'none' ? null : data.category_id,
+        };
+        post('/admin/users', { data: submitData });
     };
 
     return (
@@ -153,7 +157,7 @@ export default function AdminUsersCreate({ categories }: Props) {
                                         <SelectValue placeholder="Kategorie auswählen..." />
                                     </SelectTrigger>
                                     <SelectContent className="bg-white/10 backdrop-blur-sm border-white/20">
-                                        <SelectItem value="">Keine Kategorie</SelectItem>
+                                        <SelectItem value="none">Keine Kategorie</SelectItem>
                                         {categories.map((category) => (
                                             <SelectItem key={category.id} value={category.id.toString()}>
                                                 <div className="flex items-center gap-2">

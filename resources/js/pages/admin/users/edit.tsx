@@ -34,7 +34,7 @@ export default function AdminUsersEdit({ user, categories }: Props) {
         email: user.email,
         role: user.role,
         is_active: user.is_active,
-        category_id: user.category?.id?.toString() || '',
+        category_id: user.category?.id?.toString() || 'none',
     });
 
     const {
@@ -51,7 +51,11 @@ export default function AdminUsersEdit({ user, categories }: Props) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(`/admin/users/${user.id}`);
+        const submitData = {
+            ...data,
+            category_id: data.category_id === 'none' ? null : data.category_id,
+        };
+        put(`/admin/users/${user.id}`, { data: submitData });
     };
 
     const handlePasswordSubmit = (e: React.FormEvent) => {
@@ -151,7 +155,7 @@ export default function AdminUsersEdit({ user, categories }: Props) {
                                             <SelectValue placeholder="Kategorie auswählen..." />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">Keine Kategorie</SelectItem>
+                                            <SelectItem value="none">Keine Kategorie</SelectItem>
                                             {categories.map((category) => (
                                                 <SelectItem key={category.id} value={category.id.toString()}>
                                                     <div className="flex items-center gap-2">
