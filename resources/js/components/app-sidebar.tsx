@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Calendar, Folder, LayoutGrid, Users, CheckSquare, Tag } from 'lucide-react';
+import { BookOpen, Calendar, Folder, LayoutGrid, Users, CheckSquare } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -35,11 +35,6 @@ const adminNavItems: NavItem[] = [
         title: 'Benutzerverwaltung',
         href: '/admin/users',
         icon: Users,
-    },
-    {
-        title: 'Kategorien',
-        href: '/admin/categories',
-        icon: Tag,
     },
 ];
 

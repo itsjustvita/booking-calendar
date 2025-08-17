@@ -2,11 +2,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Lock, Mail, Shield, UserPlus } from 'lucide-react';
+import { ArrowLeft, Lock, Mail, Shield, UserPlus, Tag } from 'lucide-react';
 
-export default function AdminUsersCreate() {
+interface UserCategory {
+    id: number;
+    name: string;
+    color: string;
+}
+
+interface Props {
+    categories: UserCategory[];
+}
+
+export default function AdminUsersCreate({ categories }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         email: '',
@@ -14,6 +25,7 @@ export default function AdminUsersCreate() {
         password_confirmation: '',
         role: 'user',
         is_active: true,
+        category_id: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -128,6 +140,34 @@ export default function AdminUsersCreate() {
                                     <option value="admin">Administrator</option>
                                 </select>
                                 {errors.role && <p className="mt-1 text-sm text-red-400">{errors.role}</p>}
+                            </div>
+
+                            {/* Category */}
+                            <div>
+                                <Label htmlFor="category_id" className="flex items-center gap-2 text-white">
+                                    <Tag className="h-4 w-4 text-white/70" />
+                                    Kategorie (optional)
+                                </Label>
+                                <Select value={data.category_id} onValueChange={(value) => setData('category_id', value)}>
+                                    <SelectTrigger className="border-white/30 bg-white/20 text-white">
+                                        <SelectValue placeholder="Kategorie auswählen..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white/10 backdrop-blur-sm border-white/20">
+                                        <SelectItem value="">Keine Kategorie</SelectItem>
+                                        {categories.map((category) => (
+                                            <SelectItem key={category.id} value={category.id.toString()}>
+                                                <div className="flex items-center gap-2">
+                                                    <div
+                                                        className="w-3 h-3 rounded-full"
+                                                        style={{ backgroundColor: category.color }}
+                                                    />
+                                                    {category.name}
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.category_id && <p className="mt-1 text-sm text-red-400">{errors.category_id}</p>}
                             </div>
 
                             {/* Active Status */}

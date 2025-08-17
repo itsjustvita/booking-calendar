@@ -7,6 +7,12 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { Edit, Eye, Plus, Search, Trash2, UserCheck, Users, UserX } from 'lucide-react';
 import { useState } from 'react';
 
+interface UserCategory {
+    id: number;
+    name: string;
+    color: string;
+}
+
 interface User {
     id: number;
     name: string;
@@ -15,6 +21,7 @@ interface User {
     is_active: boolean;
     created_at: string;
     bookings_count: number;
+    category?: UserCategory;
 }
 
 interface Props {
@@ -25,9 +32,10 @@ interface Props {
         per_page: number;
         total: number;
     };
+    categories: UserCategory[];
 }
 
-export default function AdminUsersIndex({ users }: Props) {
+export default function AdminUsersIndex({ users, categories }: Props) {
     const [searchTerm, setSearchTerm] = useState('');
     const { delete: deleteUser, patch } = useForm();
 
@@ -127,6 +135,19 @@ export default function AdminUsersIndex({ users }: Props) {
                                                 <h3 className="font-semibold text-white">{user.name}</h3>
                                                 {getRoleBadge(user.role)}
                                                 {getStatusBadge(user.is_active)}
+                                                {user.category && (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="border-white/30 bg-white/10 text-white/80"
+                                                        style={{
+                                                            backgroundColor: user.category.color,
+                                                            color: user.category.color === '#ffffff' ? '#000000' : '#ffffff',
+                                                            borderColor: user.category.color,
+                                                        }}
+                                                    >
+                                                        {user.category.name}
+                                                    </Badge>
+                                                )}
                                             </div>
                                             <p className="text-sm text-white/70">{user.email}</p>
                                             <div className="mt-2 flex items-center gap-4 text-xs text-white/50">

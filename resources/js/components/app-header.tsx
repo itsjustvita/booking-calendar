@@ -9,7 +9,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Calendar, LayoutGrid, List, Menu, CheckSquare } from 'lucide-react';
+import { Calendar, LayoutGrid, List, Menu, CheckSquare, Settings, Users } from 'lucide-react';
 
 
 const mainNavItems: NavItem[] = [
@@ -32,6 +32,19 @@ const mainNavItems: NavItem[] = [
         title: 'To-Do Liste',
         href: '/todos',
         icon: CheckSquare,
+    },
+];
+
+const adminNavItems: NavItem[] = [
+    {
+        title: 'Benutzerverwaltung',
+        href: '/admin/users',
+        icon: Users,
+    },
+    {
+        title: 'Admin-Einstellungen',
+        href: '/admin/settings',
+        icon: Settings,
     },
 ];
 
@@ -71,6 +84,23 @@ export function AppHeader() {
                                                     <span>{item.title}</span>
                                                 </Link>
                                             ))}
+                                            {auth?.user?.role === 'admin' && (
+                                                <>
+                                                    <div className="border-t border-white/20 pt-2 mt-2">
+                                                        <div className="text-xs font-medium text-white/50 px-2 mb-2">Administration</div>
+                                                        {adminNavItems.map((item) => (
+                                                            <Link
+                                                                key={item.title}
+                                                                href={item.href}
+                                                                className="flex items-center space-x-2 rounded p-2 font-medium text-white hover:bg-white/20"
+                                                            >
+                                                                {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
+                                                                <span>{item.title}</span>
+                                                            </Link>
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -84,6 +114,22 @@ export function AppHeader() {
                     <NavigationMenu className="hidden lg:flex">
                         <NavigationMenuList>
                             {mainNavItems.map((item) => (
+                                <NavigationMenuItem key={item.title}>
+                                    <Link
+                                        prefetch
+                                        href={item.href}
+                                        className={cn(
+                                            navigationMenuTriggerStyle(),
+                                            'bg-transparent text-white/80 hover:bg-white/20 hover:text-white focus:bg-white/20 focus:text-white data-[active]:bg-white/20 data-[active]:text-white data-[state=open]:bg-white/20 data-[state=open]:text-white',
+                                            page.url.startsWith(item.href) ? activeItemStyles : '',
+                                        )}
+                                    >
+                                        {item.icon && <Icon iconNode={item.icon} className="mr-2 h-4 w-4" />}
+                                        {item.title}
+                                    </Link>
+                                </NavigationMenuItem>
+                            ))}
+                            {auth?.user?.role === 'admin' && adminNavItems.map((item) => (
                                 <NavigationMenuItem key={item.title}>
                                     <Link
                                         prefetch

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserCategoryController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -12,4 +13,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Category Management
     Route::resource('categories', UserCategoryController::class);
+
+    // Admin Settings
+    Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
 }); 

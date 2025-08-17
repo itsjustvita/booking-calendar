@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\UserCategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -19,12 +20,16 @@ class UserController extends Controller
      */
     public function index(): Response
     {
-        $users = User::withCount('bookings')
+        $users = User::with(['category'])
+            ->withCount('bookings')
             ->orderBy('name')
             ->paginate(15);
 
+        $categories = UserCategory::orderBy('name')->get();
+
         return Inertia::render('admin/users/index', [
             'users' => $users,
+            'categories' => $categories,
         ]);
     }
 
@@ -33,7 +38,11 @@ class UserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('admin/users/create');
+        $categories = UserCategory::orderBy('name')->get();
+
+        return Inertia::render('admin/users/create', [
+            'categories' => $categories,
+        ]);
     }
 
     /**
@@ -47,6 +56,7 @@ class UserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => 'required|in:user,admin',
             'is_active' => 'boolean',
+            'category_id' => 'nullable|exists:user_categories,id',
         ], [
             'name.required' => 'Der Name ist erforderlich.',
             'email.required' => 'Die E-Mail-Adresse ist erforderlich.',
@@ -56,6 +66,7 @@ class UserController extends Controller
             'password.confirmed' => 'Die Passwort-Bestätigung stimmt nicht überein.',
             'role.required' => 'Die Rolle ist erforderlich.',
             'role.in' => 'Die Rolle muss entweder "user" oder "admin" sein.',
+            'category_id.exists' => 'Die ausgewählte Kategorie existiert nicht.',
         ]);
 
         User::create([
@@ -64,6 +75,7 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'is_active' => $request->boolean('is_active', true),
+            'category_id' => $request->category_id,
         ]);
 
         return redirect()->route('admin.users.index')->with('success', 'Benutzer erfolgreich erstellt!');
@@ -88,8 +100,11 @@ class UserController extends Controller
      */
     public function edit(User $user): Response
     {
+        $categories = UserCategory::orderBy('name')->get();
+
         return Inertia::render('admin/users/edit', [
             'user' => $user,
+            'categories' => $categories,
         ]);
     }
 
@@ -103,6 +118,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'role' => 'required|in:user,admin',
             'is_active' => 'boolean',
+            'category_id' => 'nullable|exists:user_categories,id',
         ], [
             'name.required' => 'Der Name ist erforderlich.',
             'email.required' => 'Die E-Mail-Adresse ist erforderlich.',
@@ -110,6 +126,7 @@ class UserController extends Controller
             'email.unique' => 'Diese E-Mail-Adresse wird bereits verwendet.',
             'role.required' => 'Die Rolle ist erforderlich.',
             'role.in' => 'Die Rolle muss entweder "user" oder "admin" sein.',
+            'category_id.exists' => 'Die ausgewählte Kategorie existiert nicht.',
         ]);
 
         $user->update([
@@ -117,6 +134,7 @@ class UserController extends Controller
             'email' => $request->email,
             'role' => $request->role,
             'is_active' => $request->boolean('is_active'),
+            'category_id' => $request->category_id,
         ]);
 
         return redirect()->route('admin.users.index')->with('success', 'Benutzer erfolgreich aktualisiert!');

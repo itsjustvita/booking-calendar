@@ -2,9 +2,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Calendar, Lock, Mail, PencilLine, Shield } from 'lucide-react';
+import { ArrowLeft, Calendar, Lock, Mail, PencilLine, Shield, Tag } from 'lucide-react';
+
+interface UserCategory {
+    id: number;
+    name: string;
+    color: string;
+}
 
 interface User {
     id: number;
@@ -13,18 +20,21 @@ interface User {
     role: 'admin' | 'user';
     is_active: boolean;
     created_at: string;
+    category?: UserCategory;
 }
 
 interface Props {
     user: User;
+    categories: UserCategory[];
 }
 
-export default function AdminUsersEdit({ user }: Props) {
+export default function AdminUsersEdit({ user, categories }: Props) {
     const { data, setData, put, processing, errors } = useForm({
         name: user.name,
         email: user.email,
         role: user.role,
         is_active: user.is_active,
+        category_id: user.category?.id?.toString() || '',
     });
 
     const {
@@ -128,6 +138,34 @@ export default function AdminUsersEdit({ user }: Props) {
                                         <option value="admin">Administrator</option>
                                     </select>
                                     {errors.role && <p className="mt-1 text-sm text-red-500">{errors.role}</p>}
+                                </div>
+
+                                {/* Category */}
+                                <div>
+                                    <Label htmlFor="category_id" className="flex items-center gap-2">
+                                        <Tag className="h-4 w-4" />
+                                        Kategorie (optional)
+                                    </Label>
+                                    <Select value={data.category_id} onValueChange={(value) => setData('category_id', value)}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Kategorie auswählen..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">Keine Kategorie</SelectItem>
+                                            {categories.map((category) => (
+                                                <SelectItem key={category.id} value={category.id.toString()}>
+                                                    <div className="flex items-center gap-2">
+                                                        <div
+                                                            className="w-3 h-3 rounded-full"
+                                                            style={{ backgroundColor: category.color }}
+                                                        />
+                                                        {category.name}
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.category_id && <p className="mt-1 text-sm text-red-500">{errors.category_id}</p>}
                                 </div>
 
                                 {/* Active Status */}
