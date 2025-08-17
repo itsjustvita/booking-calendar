@@ -16,7 +16,7 @@ class TodoController extends Controller
     public function index(): Response
     {
         $todos = Todo::with(['creator', 'completedBy', 'comments.user'])
-            ->orderBy('status', 'asc') // 'offen' kommt vor 'erledigt' alphabetisch
+            ->orderBy('status', 'desc') // 'offen' kommt nach 'erledigt' - also umgekehrt sortieren
             ->orderBy('prioritaet', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
