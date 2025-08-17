@@ -66,6 +66,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's created todos
+     */
+    public function createdTodos(): HasMany
+    {
+        return $this->hasMany(Todo::class, 'created_by');
+    }
+
+    /**
+     * Get the user's completed todos
+     */
+    public function completedTodos(): HasMany
+    {
+        return $this->hasMany(Todo::class, 'completed_by');
+    }
+
+    /**
+     * Get the user's todo comments
+     */
+    public function todoComments(): HasMany
+    {
+        return $this->hasMany(TodoComment::class);
+    }
+
+    /**
      * Check if user is admin
      */
     public function isAdmin(): bool
@@ -86,7 +110,7 @@ class User extends Authenticatable
      */
     public function getRoleNameAttribute(): string
     {
-        return match($this->role) {
+        return match ($this->role) {
             UserRole::ADMIN => 'Administrator',
             UserRole::USER => 'Benutzer',
         };

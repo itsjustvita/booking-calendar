@@ -3,12 +3,10 @@
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingOverviewController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TodoCommentController;
+use App\Http\Controllers\TodoController;
 use App\Http\Controllers\YearCalendarController;
-use App\Http\Controllers\Settings\PasswordController;
-use App\Http\Controllers\Settings\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -21,6 +19,15 @@ Route::middleware('auth')->group(function () {
 
     // Booking routes mit Policy-Autorisierung in Controller-Methoden
     Route::resource('bookings', BookingController::class);
+
+    // Todo routes
+    Route::resource('todos', TodoController::class);
+    Route::patch('/todos/{todo}/complete', [TodoController::class, 'complete'])->name('todos.complete');
+    Route::patch('/todos/{todo}/reopen', [TodoController::class, 'reopen'])->name('todos.reopen');
+
+    // Todo comment routes
+    Route::post('/todos/{todo}/comments', [TodoCommentController::class, 'store'])->name('todos.comments.store');
+    Route::delete('/comments/{comment}', [TodoCommentController::class, 'destroy'])->name('todos.comments.destroy');
 });
 
 require __DIR__.'/settings.php';
