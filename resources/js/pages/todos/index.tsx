@@ -294,7 +294,7 @@ export default function TodosIndex({ todos, statistics }: Props) {
                         todos.map((todo) => (
                                     <div
                                         key={todo.id}
-                                        className={`p-4 rounded-lg border ${
+                                        className={`p-4 rounded-lg border backdrop-blur-sm ${
                                             todo.status === 'erledigt'
                                                 ? 'bg-white/5 border-white/10'
                                                 : todo.is_overdue
