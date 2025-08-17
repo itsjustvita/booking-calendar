@@ -19,8 +19,13 @@ interface TodoComment {
     id: number;
     kommentar: string;
     created_at: string;
+    edited_at?: string;
     parent_id?: number;
     user: {
+        id: number;
+        name: string;
+    };
+    edited_by?: {
         id: number;
         name: string;
     };
@@ -64,12 +69,14 @@ export default function TodosIndex({ todos, statistics }: Props) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const isAdmin = auth?.user?.role === 'admin';
+    const currentUserId = auth?.user?.id;
     
     const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
     const [selectedComment, setSelectedComment] = useState<TodoComment | null>(null);
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
     const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
+    const [isEditCommentDialogOpen, setIsEditCommentDialogOpen] = useState(false);
     const [formData, setFormData] = useState({
         titel: '',
         beschreibung: '',
@@ -78,6 +85,7 @@ export default function TodosIndex({ todos, statistics }: Props) {
     });
     const [commentText, setCommentText] = useState('');
     const [replyText, setReplyText] = useState('');
+    const [editCommentText, setEditCommentText] = useState('');
 
     const resetForm = () => {
         setFormData({
@@ -139,6 +147,27 @@ export default function TodosIndex({ todos, statistics }: Props) {
     const handleDeleteTodo = (todo: Todo) => {
         if (confirm('Möchten Sie dieses To-Do wirklich löschen?')) {
             router.delete(`/todos/${todo.id}`);
+        }
+    };
+
+    const handleEditComment = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedComment) return;
+        
+        router.put(`/comments/${selectedComment.id}`, {
+            kommentar: editCommentText,
+        }, {
+            onSuccess: () => {
+                setIsEditCommentDialogOpen(false);
+                setEditCommentText('');
+                setSelectedComment(null);
+            },
+        });
+    };
+
+    const handleDeleteComment = (comment: TodoComment) => {
+        if (confirm('Möchten Sie diesen Kommentar wirklich löschen?')) {
+            router.delete(`/comments/${comment.id}`);
         }
     };
 
@@ -383,18 +412,60 @@ export default function TodosIndex({ todos, statistics }: Props) {
                                                                                     <span>{comment.user.name}</span>
                                                                                     <span>•</span>
                                                                                     <span>{formatGermanDateTime(comment.created_at)}</span>
+                                                                                    {comment.edited_at && (
+                                                                                        <>
+                                                                                            <span>•</span>
+                                                                                            <span className="text-white/40">(bearbeitet)</span>
+                                                                                        </>
+                                                                                    )}
                                                                                 </div>
-                                                                                <Button
-                                                                                    size="sm"
-                                                                                    variant="ghost"
-                                                                                    onClick={() => {
-                                                                                        setSelectedComment(comment);
-                                                                                        setIsReplyDialogOpen(true);
-                                                                                    }}
-                                                                                    className="text-xs text-white/50 hover:text-white hover:bg-white/10"
-                                                                                >
-                                                                                    Antworten
-                                                                                </Button>
+                                                                                <div className="flex items-center space-x-1">
+                                                                                    <Button
+                                                                                        size="sm"
+                                                                                        variant="ghost"
+                                                                                        onClick={() => {
+                                                                                            setSelectedComment(comment);
+                                                                                            setIsReplyDialogOpen(true);
+                                                                                        }}
+                                                                                        className="text-xs text-white/50 hover:text-white hover:bg-white/10"
+                                                                                    >
+                                                                                        Antworten
+                                                                                    </Button>
+                                                                                    {currentUserId === comment.user.id && (
+                                                                                        <>
+                                                                                            <Button
+                                                                                                size="sm"
+                                                                                                variant="ghost"
+                                                                                                onClick={() => {
+                                                                                                    setSelectedComment(comment);
+                                                                                                    setEditCommentText(comment.kommentar);
+                                                                                                    setIsEditCommentDialogOpen(true);
+                                                                                                }}
+                                                                                                className="text-xs text-white/50 hover:text-white hover:bg-white/10"
+                                                                                            >
+                                                                                                Bearbeiten
+                                                                                            </Button>
+                                                                                            <Button
+                                                                                                size="sm"
+                                                                                                variant="ghost"
+                                                                                                onClick={() => handleDeleteComment(comment)}
+                                                                                                className="text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                                                                            >
+                                                                                                Löschen
+                                                                                            </Button>
+                                                                                        </>
+                                                                                    )}
+                                                                                    {isAdmin && currentUserId !== comment.user.id && (
+                                                                                        <Button
+                                                                                            size="sm"
+                                                                                            variant="ghost"
+                                                                                            onClick={() => handleDeleteComment(comment)}
+                                                                                            className="text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                                                                        >
+                                                                                            Löschen
+                                                                                        </Button>
+                                                                                    )}
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                         
@@ -496,6 +567,45 @@ export default function TodosIndex({ todos, statistics }: Props) {
                                 </Button>
                                 <Button type="submit" className="bg-white/20 hover:bg-white/30 text-white border-white/20">
                                     Kommentar hinzufügen
+                                </Button>
+                            </div>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Edit Comment Dialog */}
+                <Dialog open={isEditCommentDialogOpen} onOpenChange={setIsEditCommentDialogOpen}>
+                    <DialogContent className="bg-white/10 backdrop-blur-sm border-white/20">
+                        <DialogHeader>
+                            <DialogTitle className="text-white">Kommentar bearbeiten</DialogTitle>
+                            <DialogDescription className="text-white/70">
+                                Bearbeiten Sie Ihren Kommentar
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleEditComment} className="space-y-4">
+                            <div>
+                                <Label htmlFor="edit-kommentar" className="text-white">Kommentar</Label>
+                                <Textarea
+                                    id="edit-kommentar"
+                                    value={editCommentText}
+                                    onChange={(e) => setEditCommentText(e.target.value)}
+                                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                                    placeholder="Ihr Kommentar..."
+                                    rows={3}
+                                    required
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsEditCommentDialogOpen(false)}
+                                    className="border-white/20 text-white hover:bg-white/10"
+                                >
+                                    Abbrechen
+                                </Button>
+                                <Button type="submit" className="bg-white/20 hover:bg-white/30 text-white border-white/20">
+                                    Speichern
                                 </Button>
                             </div>
                         </form>

@@ -192,6 +192,89 @@ it('validiert Antwort-Inhalt', function () {
     $response->assertSessionHasErrors(['kommentar']);
 });
 
+it('bearbeitet einen eigenen Kommentar', function () {
+    $todo = Todo::factory()->create([
+        'created_by' => $this->user->id,
+    ]);
+    
+    $comment = TodoComment::factory()->create([
+        'todo_id' => $todo->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    $response = $this->actingAs($this->user)->put("/comments/{$comment->id}", [
+        'kommentar' => 'Bearbeiteter Kommentar',
+    ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('todo_comments', [
+        'id' => $comment->id,
+        'kommentar' => 'Bearbeiteter Kommentar',
+        'edited_by' => $this->user->id,
+    ]);
+    $this->assertDatabaseHas('todo_comments', [
+        'id' => $comment->id,
+        'edited_at' => now(),
+    ]);
+});
+
+it('verhindert das Bearbeiten fremder Kommentare', function () {
+    $todo = Todo::factory()->create([
+        'created_by' => $this->user->id,
+    ]);
+    
+    $comment = TodoComment::factory()->create([
+        'todo_id' => $todo->id,
+        'user_id' => $this->admin->id,
+    ]);
+
+    $response = $this->actingAs($this->user)->put("/comments/{$comment->id}", [
+        'kommentar' => 'Bearbeiteter Kommentar',
+    ]);
+
+    $response->assertForbidden();
+});
+
+it('verhindert das Bearbeiten von Unterkommentaren', function () {
+    $todo = Todo::factory()->create([
+        'created_by' => $this->user->id,
+    ]);
+    
+    $parentComment = TodoComment::factory()->create([
+        'todo_id' => $todo->id,
+        'user_id' => $this->admin->id,
+    ]);
+    
+    $reply = TodoComment::factory()->create([
+        'todo_id' => $todo->id,
+        'user_id' => $this->user->id,
+        'parent_id' => $parentComment->id,
+    ]);
+
+    $response = $this->actingAs($this->user)->put("/comments/{$reply->id}", [
+        'kommentar' => 'Bearbeiteter Kommentar',
+    ]);
+
+    $response->assertStatus(400);
+});
+
+it('validiert bearbeiteten Kommentar-Inhalt', function () {
+    $todo = Todo::factory()->create([
+        'created_by' => $this->user->id,
+    ]);
+    
+    $comment = TodoComment::factory()->create([
+        'todo_id' => $todo->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    $response = $this->actingAs($this->user)->put("/comments/{$comment->id}", [
+        'kommentar' => '',
+    ]);
+
+    $response->assertSessionHasErrors(['kommentar']);
+});
+
 it('löscht einen Kommentar als Ersteller', function () {
     $comment = TodoComment::factory()->create([
         'user_id' => $this->user->id,

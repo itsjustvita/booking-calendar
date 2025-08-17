@@ -24,6 +24,8 @@ class TodoCommentFactory extends Factory
             'todo_id' => Todo::factory(),
             'user_id' => User::factory(),
             'parent_id' => null,
+            'edited_at' => null,
+            'edited_by' => null,
         ];
     }
 
@@ -44,6 +46,17 @@ class TodoCommentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'parent_id' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the comment has been edited.
+     */
+    public function edited(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'edited_at' => now(),
+            'edited_by' => User::factory(),
         ]);
     }
 }

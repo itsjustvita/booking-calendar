@@ -28,6 +28,7 @@ Route::middleware('auth')->group(function () {
     // Todo comment routes
     Route::post('/todos/{todo}/comments', [TodoCommentController::class, 'store'])->name('todos.comments.store');
     Route::post('/comments/{comment}/reply', [TodoCommentController::class, 'reply'])->name('todos.comments.reply');
+    Route::put('/comments/{comment}', [TodoCommentController::class, 'update'])->name('todos.comments.update');
     Route::delete('/comments/{comment}', [TodoCommentController::class, 'destroy'])->name('todos.comments.destroy');
 });
 

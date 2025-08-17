@@ -15,6 +15,8 @@ class TodoComment extends Model
         'user_id',
         'parent_id',
         'kommentar',
+        'edited_at',
+        'edited_by',
     ];
 
     // Beziehungen
@@ -38,6 +40,11 @@ class TodoComment extends Model
         return $this->hasMany(TodoComment::class, 'parent_id');
     }
 
+    public function editedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'edited_by');
+    }
+
     // Scopes
     public function scopeTopLevel($query)
     {
@@ -55,6 +62,11 @@ class TodoComment extends Model
         return $this->created_at->format('d.m.Y H:i');
     }
 
+    public function getFormattedEditedAtAttribute(): string
+    {
+        return $this->edited_at?->format('d.m.Y H:i');
+    }
+
     public function getIsReplyAttribute(): bool
     {
         return !is_null($this->parent_id);
@@ -63,5 +75,15 @@ class TodoComment extends Model
     public function getCanHaveRepliesAttribute(): bool
     {
         return is_null($this->parent_id);
+    }
+
+    public function getIsEditedAttribute(): bool
+    {
+        return !is_null($this->edited_at);
+    }
+
+    public function getCanBeEditedAttribute(): bool
+    {
+        return is_null($this->parent_id); // Nur Hauptkommentare können bearbeitet werden
     }
 }
