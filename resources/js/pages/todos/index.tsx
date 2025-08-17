@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import  Heading  from '@/components/heading';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle, Circle, Plus, MessageSquare, Calendar, User, Clock, Trash2, Edit, Eye } from 'lucide-react';
 import { formatGermanDate, formatGermanDateTime } from '@/lib/utils';
+import { type SharedData } from '@/types';
 
 interface TodoComment {
     id: number;
@@ -60,6 +61,10 @@ interface Props {
 }
 
 export default function TodosIndex({ todos, statistics }: Props) {
+    const page = usePage<SharedData>();
+    const { auth } = page.props;
+    const isAdmin = auth?.user?.role === 'admin';
+    
     const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
     const [selectedComment, setSelectedComment] = useState<TodoComment | null>(null);
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -441,14 +446,16 @@ export default function TodosIndex({ todos, statistics }: Props) {
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={() => handleDeleteTodo(todo)}
-                                                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
+                                                {isAdmin && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => handleDeleteTodo(todo)}
+                                                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

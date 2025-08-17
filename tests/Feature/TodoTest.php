@@ -78,12 +78,23 @@ it('markiert ein To-Do wieder als offen', function () {
     ]);
 });
 
-it('löscht ein To-Do', function () {
+it('verhindert das Löschen von To-Dos durch normale User', function () {
     $todo = Todo::factory()->create([
         'created_by' => $this->user->id,
     ]);
 
     $response = $this->actingAs($this->user)->delete("/todos/{$todo->id}");
+
+    $response->assertForbidden();
+    $this->assertDatabaseHas('todos', ['id' => $todo->id]);
+});
+
+it('erlaubt Admins das Löschen von To-Dos', function () {
+    $todo = Todo::factory()->create([
+        'created_by' => $this->user->id,
+    ]);
+
+    $response = $this->actingAs($this->admin)->delete("/todos/{$todo->id}");
 
     $response->assertRedirect('/todos');
     $this->assertDatabaseMissing('todos', ['id' => $todo->id]);

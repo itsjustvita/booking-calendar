@@ -47,8 +47,8 @@ class BookingPolicy
             return false;
         }
 
-        // User kann eigene stornierte Buchungen nicht bearbeiten
-        if ($booking->isCancelled()) {
+        // User kann eigene gebuchte Buchungen nicht bearbeiten
+        if ($booking->isGebucht()) {
             return false;
         }
 
@@ -75,8 +75,8 @@ class BookingPolicy
             return false;
         }
 
-        // User kann stornierte Buchungen nicht löschen
-        if ($booking->isCancelled()) {
+        // User kann gebuchte Buchungen nicht löschen
+        if ($booking->isGebucht()) {
             return false;
         }
 
@@ -122,7 +122,7 @@ class BookingPolicy
             return true;
         }
 
-        // User kann eigene Buchungen stornieren (aber nicht bereits stornierte)
-        return $user->id === $booking->user_id && !$booking->isCancelled();
+        // User kann eigene Buchungen stornieren (aber nicht bereits gebuchte)
+        return $user->id === $booking->user_id && !$booking->isGebucht();
     }
 }

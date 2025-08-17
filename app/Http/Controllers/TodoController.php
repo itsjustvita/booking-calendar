@@ -94,6 +94,11 @@ class TodoController extends Controller
      */
     public function destroy(Todo $todo)
     {
+        // Nur Admins können To-Dos löschen
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Nur Administratoren können To-Dos löschen.');
+        }
+
         $todo->delete();
 
         return redirect()->route('todos.index')
