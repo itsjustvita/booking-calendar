@@ -199,103 +199,99 @@ export default function TodosIndex({ todos, statistics }: Props) {
                     </Card>
                 </div>
 
-                {/* To-Do Liste */}
-                <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <CardTitle className="text-white">Aufgaben</CardTitle>
-                                <CardDescription className="text-white/70">
-                                    Alle Ihre To-Dos auf einen Blick
-                                </CardDescription>
-                            </div>
-                            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button className="bg-white/20 hover:bg-white/30 text-white border-white/20">
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Neues To-Do
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="bg-white/10 backdrop-blur-sm border-white/20">
-                                    <DialogHeader>
-                                        <DialogTitle className="text-white">Neues To-Do erstellen</DialogTitle>
-                                        <DialogDescription className="text-white/70">
-                                            Erstellen Sie eine neue Aufgabe
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <form onSubmit={handleCreateTodo} className="space-y-4">
-                                        <div>
-                                            <Label htmlFor="titel" className="text-white">Titel *</Label>
-                                            <Input
-                                                id="titel"
-                                                value={formData.titel}
-                                                onChange={(e) => setFormData({ ...formData, titel: e.target.value })}
-                                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                                                placeholder="Titel der Aufgabe"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="beschreibung" className="text-white">Beschreibung</Label>
-                                            <Textarea
-                                                id="beschreibung"
-                                                value={formData.beschreibung}
-                                                onChange={(e) => setFormData({ ...formData, beschreibung: e.target.value })}
-                                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                                                placeholder="Optionale Beschreibung"
-                                                rows={3}
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="prioritaet" className="text-white">Priorität *</Label>
-                                            <Select value={formData.prioritaet} onValueChange={(value) => setFormData({ ...formData, prioritaet: value })}>
-                                                <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent className="bg-white/10 border-white/20">
-                                                    <SelectItem value="1">Niedrig</SelectItem>
-                                                    <SelectItem value="2">Mittel</SelectItem>
-                                                    <SelectItem value="3">Hoch</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="faelligkeitsdatum" className="text-white">Fälligkeitsdatum</Label>
-                                            <Input
-                                                id="faelligkeitsdatum"
-                                                type="date"
-                                                value={formData.faelligkeitsdatum}
-                                                onChange={(e) => setFormData({ ...formData, faelligkeitsdatum: e.target.value })}
-                                                className="bg-white/10 border-white/20 text-white"
-                                            />
-                                        </div>
-                                        <div className="flex justify-end space-x-2">
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                onClick={() => setIsCreateDialogOpen(false)}
-                                                className="border-white/20 text-white hover:bg-white/10"
-                                            >
-                                                Abbrechen
-                                            </Button>
-                                            <Button type="submit" className="bg-white/20 hover:bg-white/30 text-white border-white/20">
-                                                Erstellen
-                                            </Button>
-                                        </div>
-                                    </form>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {todos.length === 0 ? (
-                                <div className="text-center py-8">
-                                    <CheckCircle className="h-12 w-12 text-white/50 mx-auto mb-4" />
-                                    <p className="text-white/70">Keine To-Dos vorhanden</p>
+                {/* To-Do Liste Header */}
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 className="text-2xl font-bold text-white">Aufgaben</h2>
+                        <p className="text-white/70">Alle Ihre To-Dos auf einen Blick</p>
+                    </div>
+                    <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="bg-white/20 hover:bg-white/30 text-white border-white/20">
+                                <Plus className="h-4 w-4 mr-2" />
+                                Neues To-Do
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="bg-white/10 backdrop-blur-sm border-white/20">
+                            <DialogHeader>
+                                <DialogTitle className="text-white">Neues To-Do erstellen</DialogTitle>
+                                <DialogDescription className="text-white/70">
+                                    Erstellen Sie eine neue Aufgabe
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleCreateTodo} className="space-y-4">
+                                <div>
+                                    <Label htmlFor="titel" className="text-white">Titel *</Label>
+                                    <Input
+                                        id="titel"
+                                        value={formData.titel}
+                                        onChange={(e) => setFormData({ ...formData, titel: e.target.value })}
+                                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                                        placeholder="Titel der Aufgabe"
+                                        required
+                                    />
                                 </div>
-                            ) : (
-                                todos.map((todo) => (
+                                <div>
+                                    <Label htmlFor="beschreibung" className="text-white">Beschreibung</Label>
+                                    <Textarea
+                                        id="beschreibung"
+                                        value={formData.beschreibung}
+                                        onChange={(e) => setFormData({ ...formData, beschreibung: e.target.value })}
+                                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                                        placeholder="Optionale Beschreibung"
+                                        rows={3}
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="prioritaet" className="text-white">Priorität *</Label>
+                                    <Select value={formData.prioritaet} onValueChange={(value) => setFormData({ ...formData, prioritaet: value })}>
+                                        <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white/10 border-white/20">
+                                            <SelectItem value="1">Niedrig</SelectItem>
+                                            <SelectItem value="2">Mittel</SelectItem>
+                                            <SelectItem value="3">Hoch</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label htmlFor="faelligkeitsdatum" className="text-white">Fälligkeitsdatum</Label>
+                                    <Input
+                                        id="faelligkeitsdatum"
+                                        type="date"
+                                        value={formData.faelligkeitsdatum}
+                                        onChange={(e) => setFormData({ ...formData, faelligkeitsdatum: e.target.value })}
+                                        className="bg-white/10 border-white/20 text-white"
+                                    />
+                                </div>
+                                <div className="flex justify-end space-x-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setIsCreateDialogOpen(false)}
+                                        className="border-white/20 text-white hover:bg-white/10"
+                                    >
+                                        Abbrechen
+                                    </Button>
+                                    <Button type="submit" className="bg-white/20 hover:bg-white/30 text-white border-white/20">
+                                        Erstellen
+                                    </Button>
+                                </div>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+
+                {/* To-Do Liste */}
+                <div className="space-y-4">
+                    {todos.length === 0 ? (
+                        <div className="text-center py-8">
+                            <CheckCircle className="h-12 w-12 text-white/50 mx-auto mb-4" />
+                            <p className="text-white/70">Keine To-Dos vorhanden</p>
+                        </div>
+                    ) : (
+                        todos.map((todo) => (
                                     <div
                                         key={todo.id}
                                         className={`p-4 rounded-lg border ${
@@ -459,8 +455,6 @@ export default function TodosIndex({ todos, statistics }: Props) {
                                 ))
                             )}
                         </div>
-                    </CardContent>
-                </Card>
 
                 {/* Kommentar Dialog */}
                 <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
