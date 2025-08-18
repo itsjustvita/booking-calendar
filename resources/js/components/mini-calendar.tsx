@@ -57,16 +57,36 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
         'MiniCalendar Wochentage:',
         calendarData.days.slice(0, 7).map((d) => `${d.day}: ${d.dayName}`),
     );
-    const getHalfDayClasses = (half: string, position: 'left' | 'right') => {
+    const getHalfDayClasses = (half: string, position: 'left' | 'right', day: CalendarDay) => {
         const baseClasses = position === 'left' ? 'absolute top-0 left-0 w-1/2 h-full' : 'absolute top-0 right-0 w-1/2 h-full';
 
         switch (half) {
             case 'occupied':
-                return cn(baseClasses, 'bg-blue-500'); // Blau für belegt
+                // Prüfe ob Buchungen mit Kategorien vorhanden sind
+                if (day.bookings && day.bookings.length > 0) {
+                    // Verwende die erste Buchung mit Kategorie-Farbe, falls vorhanden
+                    const bookingWithCategory = day.bookings.find(booking => booking.user?.category);
+                    if (bookingWithCategory?.user?.category?.color) {
+                        return cn(baseClasses, 'border border-white/20');
+                    }
+                }
+                return cn(baseClasses, 'bg-blue-500'); // Standard blau für belegt
             case 'free':
             default:
                 return cn(baseClasses, 'bg-transparent'); // Transparent für frei
         }
+    };
+
+    const getHalfDayStyle = (half: string, position: 'left' | 'right', day: CalendarDay) => {
+        if (half === 'occupied' && day.bookings && day.bookings.length > 0) {
+            const bookingWithCategory = day.bookings.find(booking => booking.user?.category);
+            if (bookingWithCategory?.user?.category?.color) {
+                return {
+                    backgroundColor: bookingWithCategory.user.category.color,
+                };
+            }
+        }
+        return {};
     };
 
     const handleDayButtonClick = (day: CalendarDay, event: React.MouseEvent<HTMLButtonElement>) => {
@@ -161,10 +181,16 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
                         }`}
                     >
                         {/* Left half - visuell */}
-                        <div className={cn(getHalfDayClasses(day.leftHalf, 'left'), 'pointer-events-none rounded-l-md')} />
+                        <div 
+                            className={cn(getHalfDayClasses(day.leftHalf, 'left', day), 'pointer-events-none rounded-l-md')} 
+                            style={getHalfDayStyle(day.leftHalf, 'left', day)}
+                        />
 
                         {/* Right half - visuell */}
-                        <div className={cn(getHalfDayClasses(day.rightHalf, 'right'), 'pointer-events-none rounded-r-md')} />
+                        <div 
+                            className={cn(getHalfDayClasses(day.rightHalf, 'right', day), 'pointer-events-none rounded-r-md')} 
+                            style={getHalfDayStyle(day.rightHalf, 'right', day)}
+                        />
 
                         {/* Day number - always on top */}
                         <span className="pointer-events-none relative z-10 text-xs font-semibold text-white">{day.day}</span>

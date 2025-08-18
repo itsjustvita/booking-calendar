@@ -41,7 +41,7 @@ class DashboardController extends Controller
         ]);
 
         // Get bookings for the month
-        $bookings = Booking::with('user')
+        $bookings = Booking::with(['user.category'])
             ->whereBetween('start_datum', [$startOfMonth, $endOfMonth])
             ->orWhereBetween('end_datum', [$startOfMonth, $endOfMonth])
             ->orWhere(function ($query) use ($startOfMonth, $endOfMonth) {

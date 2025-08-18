@@ -22,7 +22,7 @@ class YearCalendarController extends Controller
         $startOfYear = $selectedYear->copy()->startOfYear();
         $endOfYear = $selectedYear->copy()->endOfYear();
 
-        $allBookings = Booking::with('user')
+        $allBookings = Booking::with(['user.category'])
             ->whereBetween('start_datum', [$startOfYear, $endOfYear])
             ->orWhere(function ($query) use ($startOfYear, $endOfYear) {
                 $query->where('start_datum', '<', $startOfYear)
@@ -48,6 +48,11 @@ class YearCalendarController extends Controller
                         'id' => $booking->user->id,
                         'name' => $booking->user->name,
                         'email' => $booking->user->email,
+                        'category' => $booking->user->category ? [
+                            'id' => $booking->user->category->id,
+                            'name' => $booking->user->category->name,
+                            'color' => $booking->user->category->color,
+                        ] : null,
                     ],
                     'can_edit' => auth()->user() ? auth()->user()->can('update', $booking) : false,
                     'can_delete' => auth()->user() ? auth()->user()->can('delete', $booking) : false,

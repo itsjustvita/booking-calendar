@@ -25,6 +25,11 @@ interface Booking {
         id: number;
         name: string;
         email: string;
+        category?: {
+            id: number;
+            name: string;
+            color: string;
+        };
     };
     can_edit: boolean;
     can_delete: boolean;
@@ -131,16 +136,36 @@ export default function YearCalendar() {
         console.log('Delete booking:', booking);
     };
 
-    const getHalfDayClasses = (half: string, position: 'left' | 'right') => {
+    const getHalfDayClasses = (half: string, position: 'left' | 'right', day: CalendarDay) => {
         const baseClasses = position === 'left' ? 'absolute top-0 left-0 w-1/2 h-full' : 'absolute top-0 right-0 w-1/2 h-full';
 
         switch (half) {
             case 'occupied':
-                return cn(baseClasses, 'bg-blue-500'); // Blau für belegt
+                // Prüfe ob Buchungen mit Kategorien vorhanden sind
+                if (day.bookings && day.bookings.length > 0) {
+                    // Verwende die erste Buchung mit Kategorie-Farbe, falls vorhanden
+                    const bookingWithCategory = day.bookings.find(booking => booking.user?.category);
+                    if (bookingWithCategory?.user?.category?.color) {
+                        return cn(baseClasses, 'border border-white/20');
+                    }
+                }
+                return cn(baseClasses, 'bg-blue-500'); // Standard blau für belegt
             case 'free':
             default:
                 return cn(baseClasses, 'bg-transparent'); // Transparent für frei
         }
+    };
+
+    const getHalfDayStyle = (half: string, position: 'left' | 'right', day: CalendarDay) => {
+        if (half === 'occupied' && day.bookings && day.bookings.length > 0) {
+            const bookingWithCategory = day.bookings.find(booking => booking.user?.category);
+            if (bookingWithCategory?.user?.category?.color) {
+                return {
+                    backgroundColor: bookingWithCategory.user.category.color,
+                };
+            }
+        }
+        return {};
     };
 
     // Hinweis: getDayClasses aktuell ungenutzt – visuelle Klassen direkt im Button
@@ -192,10 +217,16 @@ export default function YearCalendar() {
                                 }`}
                             >
                                 {/* Left half - visuell */}
-                                <div className={cn(getHalfDayClasses(day.leftHalf, 'left'), 'rounded-l-md')} />
+                                <div 
+                                    className={cn(getHalfDayClasses(day.leftHalf, 'left', day), 'rounded-l-md')} 
+                                    style={getHalfDayStyle(day.leftHalf, 'left', day)}
+                                />
 
                                 {/* Right half - visuell */}
-                                <div className={cn(getHalfDayClasses(day.rightHalf, 'right'), 'rounded-r-md')} />
+                                <div 
+                                    className={cn(getHalfDayClasses(day.rightHalf, 'right', day), 'rounded-r-md')} 
+                                    style={getHalfDayStyle(day.rightHalf, 'right', day)}
+                                />
 
                                 {/* Day number - always on top */}
                                 <span className="pointer-events-none relative z-10 text-xs font-semibold text-white">{day.day}</span>
@@ -299,7 +330,7 @@ export default function YearCalendar() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="h-5 w-5 border border-white/30 bg-blue-500" />
-                                <span>Voll belegt</span>
+                                <span>Voll belegt (Standard)</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="relative h-5 w-5 border border-white/30">
@@ -317,6 +348,40 @@ export default function YearCalendar() {
                                 <span>An- und Abreise am selben Tag (komplett belegt)</span>
                             </div>
                         </div>
+                        
+                        {/* Kategorie-Legende */}
+                        {(() => {
+                            const categories = new Set();
+                            monthsData.forEach(month => {
+                                month.bookings.forEach(booking => {
+                                    if (booking.user?.category) {
+                                        categories.add(JSON.stringify(booking.user.category));
+                                    }
+                                });
+                            });
+                            
+                            const uniqueCategories = Array.from(categories).map(cat => JSON.parse(cat as string));
+                            
+                            if (uniqueCategories.length > 0) {
+                                return (
+                                    <div className="mt-4">
+                                        <h4 className="mb-2 text-sm font-medium text-white">Benutzer-Kategorien:</h4>
+                                        <div className="flex flex-wrap gap-3">
+                                            {uniqueCategories.map((category) => (
+                                                <div key={category.id} className="flex items-center gap-2">
+                                                    <div 
+                                                        className="h-4 w-4 rounded border border-white/20" 
+                                                        style={{ backgroundColor: category.color }}
+                                                    />
+                                                    <span className="text-xs">{category.name}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
                         <p className="mt-2 text-xs text-white/70">
                             💡 Anreise ist nachmittags, Abreise ist vormittags - dadurch können sich Buchungen um einen halben Tag überschneiden.
                         </p>

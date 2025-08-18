@@ -40,6 +40,11 @@ class Booking extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function getUserCategoryAttribute()
+    {
+        return $this->user->category;
+    }
+
     /**
      * Get the booking status in German
      */
