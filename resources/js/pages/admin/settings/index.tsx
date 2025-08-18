@@ -66,7 +66,7 @@ export default function AdminSettings({ categories }: Props) {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <Heading>Admin-Einstellungen</Heading>
+                        <Heading title="Admin-Einstellungen" />
                         <p className="text-white/70 mt-2">Verwalten Sie System-Einstellungen und Kategorien</p>
                     </div>
                 </div>
@@ -212,7 +212,7 @@ export default function AdminSettings({ categories }: Props) {
                                                 className="text-xs"
                                                 style={{
                                                     backgroundColor: category.color,
-                                                    color: category.text_color || '#ffffff',
+                                                    color: category.color === '#ffffff' ? '#000000' : '#ffffff',
                                                 }}
                                             >
                                                 {category.color}
