@@ -159,7 +159,7 @@ class YearCalendarController extends Controller
                 'isCurrentMonth' => true, // Alle Tage sind jetzt im aktuellen Monat
                 'isToday' => $currentDay->isToday(),
                 'isWeekend' => $currentDay->dayOfWeek === 6 || $currentDay->dayOfWeek === 0, // Samstag = 6, Sonntag = 0
-                'bookings' => $dayBookings->values(),
+                'bookings' => $dayBookings->values()->toArray(),
                 'hasBookings' => $dayBookings->count() > 0,
                 'isArrivalDay' => $isArrivalDay,
                 'isDepartureDay' => $isDepartureDay,

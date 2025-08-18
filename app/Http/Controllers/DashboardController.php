@@ -209,6 +209,11 @@ class DashboardController extends Controller
                         'id' => $b->user->id,
                         'name' => $b->user->name,
                         'email' => $b->user->email,
+                        'category' => $b->user->category ? [
+                            'id' => $b->user->category->id,
+                            'name' => $b->user->category->name,
+                            'color' => $b->user->category->color,
+                        ] : null,
                     ],
                 ];
             })

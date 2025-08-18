@@ -21,7 +21,16 @@ interface CalendarDayBooking {
     status_name: string;
     duration: number;
     date_range: string;
-    user: { id: number; name: string; email: string };
+    user: { 
+        id: number; 
+        name: string; 
+        email: string;
+        category?: {
+            id: number;
+            name: string;
+            color: string;
+        };
+    };
     can_edit: boolean;
     can_delete: boolean;
 }
@@ -49,7 +58,16 @@ interface UpcomingBooking {
     status: string;
     status_name: string;
     date_range: string;
-    user: { id: number; name: string; email: string };
+    user: { 
+        id: number; 
+        name: string; 
+        email: string;
+        category?: {
+            id: number;
+            name: string;
+            color: string;
+        };
+    };
 }
 
 interface DashboardData {
