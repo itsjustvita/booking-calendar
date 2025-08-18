@@ -41,7 +41,7 @@ class DashboardController extends Controller
         ]);
 
         // Get bookings for the month
-        $bookings = Booking::with(['user.category'])
+        $bookings = Booking::with(['user'])
             ->whereBetween('start_datum', [$startOfMonth, $endOfMonth])
             ->orWhereBetween('end_datum', [$startOfMonth, $endOfMonth])
             ->orWhere(function ($query) use ($startOfMonth, $endOfMonth) {
@@ -49,6 +49,10 @@ class DashboardController extends Controller
                     ->where('end_datum', '>=', $endOfMonth);
             })
             ->get();
+
+        // Load categories separately
+        $userIds = $bookings->pluck('user.category_id')->filter()->unique();
+        $categories = \App\Models\UserCategory::whereIn('id', $userIds)->get()->keyBy('id');
 
         // Debug
         Log::info('Dashboard: Found bookings', [
@@ -325,6 +329,11 @@ class DashboardController extends Controller
                         'id' => $booking->user->id,
                         'name' => $booking->user->name,
                         'email' => $booking->user->email,
+                        'category' => $booking->user->category_id && isset($categories[$booking->user->category_id]) ? [
+                            'id' => $categories[$booking->user->category_id]->id,
+                            'name' => $categories[$booking->user->category_id]->name,
+                            'color' => $categories[$booking->user->category_id]->color,
+                        ] : null,
                     ],
                     'can_edit' => Auth::check() ? Auth::user()->can('update', $booking) : false,
                     'can_delete' => Auth::check() ? Auth::user()->can('delete', $booking) : false,

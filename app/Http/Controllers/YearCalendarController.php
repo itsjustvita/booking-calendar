@@ -22,7 +22,7 @@ class YearCalendarController extends Controller
         $startOfYear = $selectedYear->copy()->startOfYear();
         $endOfYear = $selectedYear->copy()->endOfYear();
 
-        $allBookings = Booking::with(['user.category'])
+        $allBookings = Booking::with(['user'])
             ->whereBetween('start_datum', [$startOfYear, $endOfYear])
             ->orWhere(function ($query) use ($startOfYear, $endOfYear) {
                 $query->where('start_datum', '<', $startOfYear)
@@ -33,8 +33,14 @@ class YearCalendarController extends Controller
                       ->where('end_datum', '>', $endOfYear);
             })
             ->orderBy('start_datum')
-            ->get()
-            ->map(function ($booking) {
+            ->get();
+
+        // Load categories separately
+        $userIds = $allBookings->pluck('user.category_id')->filter()->unique();
+        $categories = \App\Models\UserCategory::whereIn('id', $userIds)->get()->keyBy('id');
+
+        $allBookings = $allBookings
+            ->map(function ($booking) use ($categories) {
                 return [
                     'id' => $booking->id,
                     'titel' => $booking->titel,
@@ -48,10 +54,10 @@ class YearCalendarController extends Controller
                         'id' => $booking->user->id,
                         'name' => $booking->user->name,
                         'email' => $booking->user->email,
-                        'category' => $booking->user->category ? [
-                            'id' => $booking->user->category->id,
-                            'name' => $booking->user->category->name,
-                            'color' => $booking->user->category->color,
+                        'category' => $booking->user->category_id && isset($categories[$booking->user->category_id]) ? [
+                            'id' => $categories[$booking->user->category_id]->id,
+                            'name' => $categories[$booking->user->category_id]->name,
+                            'color' => $categories[$booking->user->category_id]->color,
                         ] : null,
                     ],
                     'can_edit' => auth()->user() ? auth()->user()->can('update', $booking) : false,
