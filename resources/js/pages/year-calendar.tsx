@@ -116,14 +116,26 @@ export default function YearCalendar() {
         const timeOfDay = clickX < buttonWidth / 2 ? 'morning' : 'afternoon';
 
         const isHalfFree = (timeOfDay === 'morning' && day.leftHalf === 'free') || (timeOfDay === 'afternoon' && day.rightHalf === 'free');
+        const isHalfOccupied = (timeOfDay === 'morning' && day.leftHalf === 'occupied') || (timeOfDay === 'afternoon' && day.rightHalf === 'occupied');
+
+        // Debug-Info für besseres Verständnis
+        console.log('Year calendar click:', {
+            date: day.date,
+            timeOfDay,
+            leftHalf: day.leftHalf,
+            rightHalf: day.rightHalf,
+            isHalfFree,
+            isHalfOccupied,
+            hasBookings: day.hasBookings
+        });
 
         if (isHalfFree && day.isCurrentMonth) {
-            // Öffne Buchungsformular mit vorausgefülltem Datum
+            // Öffne Buchungsformular mit vorausgefülltem Datum (nur für freie Hälften)
             setSelectedDate(day.date);
             setSelectedTime(timeOfDay);
             setShowBookingForm(true);
-        } else if (day.hasBookings) {
-            // Zeige bestehende Buchung
+        } else if (isHalfOccupied || day.hasBookings) {
+            // Zeige bestehende Buchung (für belegte Hälften oder allgemein wenn Buchungen vorhanden)
             handleDayClick(day);
         }
     };
