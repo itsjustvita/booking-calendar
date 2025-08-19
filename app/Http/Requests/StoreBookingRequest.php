@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Booking;
+use App\Models\BookingStatus;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -80,27 +81,20 @@ class StoreBookingRequest extends FormRequest
             $startDate = Carbon::parse($this->start_datum);
             $endDate = Carbon::parse($this->end_datum);
 
-            // Check for overlapping bookings (except for arrival/departure days)
-            $overlappingBookings = Booking::gebucht()
-                ->where(function ($query) use ($startDate, $endDate) {
-                    $query->where(function ($q) use ($startDate, $endDate) {
-                        // Complete overlap
-                        $q->where('start_datum', '<', $startDate)
-                          ->where('end_datum', '>', $endDate);
-                    })->orWhere(function ($q) use ($startDate, $endDate) {
-                        // Start date conflict (but not on departure day)
-                        $q->where('start_datum', '<=', $startDate)
-                          ->where('end_datum', '>', $startDate);
-                    })->orWhere(function ($q) use ($startDate, $endDate) {
-                        // End date conflict (but not on arrival day)
-                        $q->where('start_datum', '<', $endDate)
-                          ->where('end_datum', '>=', $endDate);
-                    });
+            // Strikte Überschneidungsprüfung: keinerlei Überschneidung erlaubt (inkl. gleicher An-/Abreisetag)
+            // Bedingung für Überschneidung: existing.start <= new.end AND existing.end >= new.start
+            // Überschneidung nur, wenn sich die Zeiträume echt schneiden (Grenzwerte gelten als erlaubt)
+            // Overlap-Formel (echt): existing.start < new.end AND existing.end > new.start
+            $overlappingBookings = Booking::query()
+                ->whereIn('status', [BookingStatus::RESERVIERT->value, BookingStatus::GEBUCHT->value])
+                ->where(function ($q) use ($startDate, $endDate) {
+                    $q->where('start_datum', '<', $endDate)
+                      ->where('end_datum', '>', $startDate);
                 })
                 ->exists();
 
             if ($overlappingBookings) {
-                $validator->errors()->add('start_datum', 'Für diesen Zeitraum liegt bereits eine bestätigte Buchung vor.');
+                $validator->errors()->add('start_datum', 'Für diesen Zeitraum liegt bereits eine Buchung vor. Überschneidungen sind nicht erlaubt.');
             }
         });
     }

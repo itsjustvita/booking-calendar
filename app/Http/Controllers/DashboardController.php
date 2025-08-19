@@ -61,7 +61,7 @@ class DashboardController extends Controller
         ]);
 
         // Create calendar days
-        $calendarDays = $this->generateCalendarDays($startOfMonth, $endOfMonth, $bookings);
+        $calendarDays = $this->generateCalendarDays($startOfMonth, $endOfMonth, $bookings, $categories);
 
         // Debug
         $daysWithBookings = collect($calendarDays)->filter(function ($day) {
@@ -165,6 +165,7 @@ class DashboardController extends Controller
                     'monthlyRevenue' => $this->getStatistics($year, $month)['monthlyRevenue'],
                 ],
                 'upcomingList' => $this->getUpcomingList(),
+                'todoStats' => $this->getTodoStats(),
             ],
             'weatherLocation' => $weatherLocation,
             'weatherData' => $weatherData,
@@ -224,6 +225,24 @@ class DashboardController extends Controller
             ->toArray();
     }
 
+    private function getTodoStats(): array
+    {
+        $today = Carbon::today();
+        $totalTodos = \App\Models\Todo::count();
+        $openTodos = \App\Models\Todo::where('status', 'offen')->count();
+        $completedTodos = \App\Models\Todo::where('status', 'erledigt')->count();
+        $overdueTodos = \App\Models\Todo::where('status', 'offen')
+            ->whereDate('faelligkeitsdatum', '<', $today)
+            ->count();
+
+        return [
+            'total' => $totalTodos,
+            'open' => $openTodos,
+            'completed' => $completedTodos,
+            'overdue' => $overdueTodos,
+        ];
+    }
+
     private static function mapWeatherCodeToGerman(int $code): string
     {
         $map = [
@@ -260,7 +279,7 @@ class DashboardController extends Controller
         return $map[$code] ?? 'Unbekannt';
     }
 
-    private function generateCalendarDays($startOfMonth, $endOfMonth, $bookings)
+    private function generateCalendarDays($startOfMonth, $endOfMonth, $bookings, $categories)
     {
         $days = [];
         $current = $startOfMonth->copy();
@@ -309,7 +328,7 @@ class DashboardController extends Controller
             }
 
             // Convert bookings to array with necessary data (reindex keys!)
-            $bookingsArray = $dayBookings->map(function ($booking) {
+            $bookingsArray = $dayBookings->map(function ($booking) use ($categories) {
                 $startDate = Carbon::parse($booking->start_datum);
                 $endDate = Carbon::parse($booking->end_datum);
                 $duration = $startDate->diffInDays($endDate) + 1;

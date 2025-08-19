@@ -127,7 +127,13 @@ class YearCalendarController extends Controller
                 $start = Carbon::parse($booking['start_datum']);
                 $end = Carbon::parse($booking['end_datum']);
                 
-                return $currentDay->between($start, $end);
+                // Ein Tag hat Buchungen wenn:
+                // 1. Er zwischen Start und Ende liegt (exklusive Ende)
+                // 2. ODER er der Anreisetag ist (Start-Datum)
+                // 3. ODER er der Abreisetag ist (End-Datum)
+                return $currentDay->between($start, $end) || 
+                       $start->isSameDay($currentDay) || 
+                       $end->isSameDay($currentDay);
             });
 
             $isArrivalDay = $bookings->some(function ($booking) use ($currentDay) {
@@ -140,22 +146,40 @@ class YearCalendarController extends Controller
 
             $isFullyOccupied = $dayBookings->count() > 0 && !$isArrivalDay && !$isDepartureDay;
 
-            // Korrigierte Logik für die Tageshälften
+            // Erweiterte Logik für die Tageshälften mit spezifischen Buchungen
             $leftHalf = 'free';
             $rightHalf = 'free';
+            $leftHalfBooking = null;
+            $rightHalfBooking = null;
 
-            if ($isArrivalDay && $isDepartureDay) {
-                $leftHalf = 'occupied';
-                $rightHalf = 'occupied';
-            } elseif ($isArrivalDay) {
-                $leftHalf = 'free';
-                $rightHalf = 'occupied';
-            } elseif ($isDepartureDay) {
-                $leftHalf = 'occupied';
-                $rightHalf = 'free';
-            } elseif ($dayBookings->count() > 0) {
-                $leftHalf = 'occupied';
-                $rightHalf = 'occupied';
+            // Finde spezifische Buchungen für jede Hälfte
+            foreach ($dayBookings as $booking) {
+                $start = Carbon::parse($booking['start_datum']);
+                $end = Carbon::parse($booking['end_datum']);
+                
+                // Vormittag (left half) - Abreisetag
+                if ($end->isSameDay($currentDay)) {
+                    $leftHalf = 'occupied';
+                    $leftHalfBooking = $booking;
+                }
+                
+                // Nachmittag (right half) - Anreisetag  
+                if ($start->isSameDay($currentDay)) {
+                    $rightHalf = 'occupied';
+                    $rightHalfBooking = $booking;
+                }
+                
+                // Vollständig belegte Tage (zwischen Anreise und Abreise)
+                if ($currentDay->between($start, $end) && !$start->isSameDay($currentDay) && !$end->isSameDay($currentDay)) {
+                    if ($leftHalf === 'free') {
+                        $leftHalf = 'occupied';
+                        $leftHalfBooking = $booking;
+                    }
+                    if ($rightHalf === 'free') {
+                        $rightHalf = 'occupied';
+                        $rightHalfBooking = $booking;
+                    }
+                }
             }
 
             $calendarDays[] = [
@@ -172,6 +196,8 @@ class YearCalendarController extends Controller
                 'isFullyOccupied' => $isFullyOccupied,
                 'leftHalf' => $leftHalf,
                 'rightHalf' => $rightHalf,
+                'leftHalfBooking' => $leftHalfBooking,
+                'rightHalfBooking' => $rightHalfBooking,
             ];
 
             $currentDay->addDay();

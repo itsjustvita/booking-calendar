@@ -2,6 +2,30 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+interface Booking {
+    id: number;
+    titel: string;
+    beschreibung?: string;
+    start_datum: string;
+    end_datum: string;
+    status: string;
+    status_name: string;
+    duration: number;
+    date_range: string;
+    user: {
+        id: number;
+        name: string;
+        email: string;
+        category?: {
+            id: number;
+            name: string;
+            color: string;
+        };
+    };
+    can_edit: boolean;
+    can_delete: boolean;
+}
+
 interface CalendarDay {
     date: string;
     day: number;
@@ -9,13 +33,15 @@ interface CalendarDay {
     isCurrentMonth: boolean;
     isToday: boolean;
     isWeekend: boolean;
-    bookings: any[];
+    bookings: Booking[];
     hasBookings: boolean;
     isArrivalDay: boolean;
     isDepartureDay: boolean;
     isFullyOccupied: boolean;
-    leftHalf: string;
-    rightHalf: string;
+    leftHalf: 'occupied' | 'free';
+    rightHalf: 'occupied' | 'free';
+    leftHalfBooking?: Booking | null;
+    rightHalfBooking?: Booking | null;
 }
 
 interface MiniCalendarProps {
@@ -24,7 +50,7 @@ interface MiniCalendarProps {
         days: CalendarDay[];
         weekdays: string[];
     };
-    onDayClick: (day: CalendarDay, event: React.MouseEvent<HTMLButtonElement>) => void;
+    onDayClick: (day: CalendarDay, event: React.MouseEvent<HTMLButtonElement>, timeOfDay?: 'morning' | 'afternoon') => void;
     onPrevMonth: () => void;
     onNextMonth: () => void;
     onBookingFormOpen?: (date: string, timeOfDay: 'morning' | 'afternoon') => void;
@@ -60,66 +86,103 @@ export function MiniCalendar({ currentMonth, calendarData, onDayClick, onPrevMon
     const getHalfDayClasses = (half: string, position: 'left' | 'right', day: CalendarDay) => {
         const baseClasses = position === 'left' ? 'absolute top-0 left-0 w-1/2 h-full' : 'absolute top-0 right-0 w-1/2 h-full';
 
-        switch (half) {
-            case 'occupied':
-                // Prüfe ob Buchungen mit Kategorien vorhanden sind
-                if (day.bookings && day.bookings.length > 0) {
-                    // Verwende die erste Buchung mit Kategorie-Farbe, falls vorhanden
-                    const bookingWithCategory = day.bookings.find(booking => booking.user?.category);
-                    if (bookingWithCategory?.user?.category?.color) {
-                        return cn(baseClasses, 'border border-white/20');
+        if (half === 'occupied') {
+            // Bei An-/Abreisetagen: Prüfe die spezifische Buchung für diese Hälfte
+            if (day.isArrivalDay || day.isDepartureDay) {
+                const relevantBooking = day.bookings.find(booking => {
+                    const startDate = new Date(booking.start_datum);
+                    const endDate = new Date(booking.end_datum);
+                    const dayDate = new Date(day.date);
+                    
+                    if (position === 'left') {
+                        return endDate.toDateString() === dayDate.toDateString();
+                    } else {
+                        return startDate.toDateString() === dayDate.toDateString();
                     }
+                });
+                
+                if (relevantBooking?.user?.category?.color) {
+                    return cn(baseClasses, 'border border-white/20');
+                }
+                return cn(baseClasses, 'bg-blue-500'); // Standard blau wenn keine Kategorie
+            } else {
+                // Bei normalen Tagen
+                const bookingWithCategory = day.bookings.find(booking => booking.user?.category);
+                if (bookingWithCategory?.user?.category?.color) {
+                    return cn(baseClasses, 'border border-white/20');
                 }
                 return cn(baseClasses, 'bg-blue-500'); // Standard blau für belegt
-            case 'free':
-            default:
-                return cn(baseClasses, 'bg-transparent'); // Transparent für frei
+            }
         }
+        
+        return cn(baseClasses, 'bg-transparent'); // Transparent für frei
     };
 
     const getHalfDayStyle = (half: string, position: 'left' | 'right', day: CalendarDay) => {
-        if (half === 'occupied' && day.bookings && day.bookings.length > 0) {
-            const bookingWithCategory = day.bookings.find(booking => booking.user?.category);
-            if (bookingWithCategory?.user?.category?.color) {
-                return {
-                    backgroundColor: bookingWithCategory.user.category.color,
-                };
+        if (half === 'occupied') {
+            // Prüfe ob es ein An-/Abreisetag ist
+            if (day.isArrivalDay || day.isDepartureDay) {
+                // Bei An-/Abreisetagen: Finde die spezifische Buchung für diese Hälfte
+                const relevantBooking = day.bookings.find(booking => {
+                    const startDate = new Date(booking.start_datum);
+                    const endDate = new Date(booking.end_datum);
+                    const dayDate = new Date(day.date);
+                    
+                    if (position === 'left') {
+                        // Linke Hälfte = Abreise (vormittags)
+                        return endDate.toDateString() === dayDate.toDateString();
+                    } else {
+                        // Rechte Hälfte = Anreise (nachmittags)
+                        return startDate.toDateString() === dayDate.toDateString();
+                    }
+                });
+                
+                if (relevantBooking?.user?.category?.color) {
+                    return {
+                        backgroundColor: relevantBooking.user.category.color,
+                    };
+                }
+            } else {
+                // Bei normalen belegten Tagen: Verwende die erste Buchung mit Kategorie
+                const bookingWithCategory = day.bookings.find(booking => booking.user?.category);
+                if (bookingWithCategory?.user?.category?.color) {
+                    return {
+                        backgroundColor: bookingWithCategory.user.category.color,
+                    };
+                }
             }
         }
         return {};
     };
 
     const handleDayButtonClick = (day: CalendarDay, event: React.MouseEvent<HTMLButtonElement>) => {
-        // Debug
-        console.log('MiniCalendar click', {
-            date: day.date,
-            hasBookings: day.hasBookings,
-            bookingsLen: day.bookings?.length,
-            left: day.leftHalf,
-            right: day.rightHalf,
-        });
-
-        // Wenn bereits Buchungen vorhanden sind, immer Details-Modal öffnen
-        if (day.hasBookings && day.bookings && day.bookings.length > 0) {
-            onDayClick(day, event);
-            return;
-        }
-
         // Bestimme basierend auf Klick-Position ob links oder rechts
         const rect = event.currentTarget.getBoundingClientRect();
         const clickX = event.clientX - rect.left;
         const buttonWidth = rect.width;
         const timeOfDay = clickX < buttonWidth / 2 ? 'morning' : 'afternoon';
 
-        // Nur wenn der Tag vollständig frei ist, das Formular öffnen
-        const isFullyFree = day.leftHalf === 'free' && day.rightHalf === 'free';
-        if (isFullyFree && day.isCurrentMonth && onBookingFormOpen) {
-            onBookingFormOpen(day.date, timeOfDay);
-            return;
-        }
+        const isHalfFree = (timeOfDay === 'morning' && day.leftHalf === 'free') || (timeOfDay === 'afternoon' && day.rightHalf === 'free');
+        const isHalfOccupied = (timeOfDay === 'morning' && day.leftHalf === 'occupied') || (timeOfDay === 'afternoon' && day.rightHalf === 'occupied');
 
-        // Fallback: wenn nicht vollständig frei (z. B. teilweise belegt), Details öffnen
-        onDayClick(day, event);
+        // Debug-Info
+        console.log('MiniCalendar click:', {
+            date: day.date,
+            timeOfDay,
+            leftHalf: day.leftHalf,
+            rightHalf: day.rightHalf,
+            isHalfFree,
+            isHalfOccupied,
+            hasBookings: day.hasBookings
+        });
+
+        if (isHalfFree && day.isCurrentMonth && onBookingFormOpen) {
+            // Öffne Buchungsformular mit vorausgefülltem Datum (nur für freie Hälften)
+            onBookingFormOpen(day.date, timeOfDay);
+        } else if (isHalfOccupied || day.hasBookings) {
+            // Zeige bestehende Buchung (für belegte Hälften oder allgemein wenn Buchungen vorhanden)
+            onDayClick(day, event, timeOfDay);
+        }
     };
 
     // Offset für Monatsanfang berechnen

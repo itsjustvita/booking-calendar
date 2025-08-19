@@ -49,6 +49,8 @@ interface CalendarDay {
     isFullyOccupied: boolean;
     leftHalf: 'occupied' | 'free';
     rightHalf: 'occupied' | 'free';
+    leftHalfBooking?: Booking | null;
+    rightHalfBooking?: Booking | null;
 }
 
 interface CalendarData {
@@ -93,18 +95,38 @@ export default function YearCalendar() {
     const { year, monthsData, yearStats, previousYear, nextYear } = usePage<YearCalendarPageProps>().props;
     const [showBookingModal, setShowBookingModal] = useState(false);
     const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
+    const [selectedHalf, setSelectedHalf] = useState<'morning' | 'afternoon' | null>(null);
+
+    // Debug: State änderungen überwachen
+    console.log('YearCalendar render - states:', {
+        showBookingModal,
+        selectedDay: selectedDay?.date,
+        selectedHalf,
+        hasSelectedDay: !!selectedDay
+    });
 
     // State für Buchungsformular
     const [showBookingForm, setShowBookingForm] = useState(false);
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [selectedTime, setSelectedTime] = useState<'morning' | 'afternoon'>('afternoon');
 
-    const handleDayClick = (day: CalendarDay) => {
-        console.log('Year calendar day clicked:', day); // Debug
+    const handleDayClick = (day: CalendarDay, timeOfDay: 'morning' | 'afternoon') => {
+        console.log('handleDayClick called:', {
+            date: day.date,
+            timeOfDay,
+            hasBookings: day.hasBookings,
+            bookingsLength: day.bookings?.length,
+            bookings: day.bookings
+        });
+        
         if (day.hasBookings) {
-            console.log('Setting selected day:', day); // Debug
+            console.log('Modal should open now - setting state...');
             setSelectedDay(day);
+            setSelectedHalf(timeOfDay);
             setShowBookingModal(true);
+            console.log('State set - selectedDay:', day, 'selectedHalf:', timeOfDay, 'showBookingModal: true');
+        } else {
+            console.log('No bookings found, modal will not open');
         }
     };
 
@@ -136,7 +158,10 @@ export default function YearCalendar() {
             setShowBookingForm(true);
         } else if (isHalfOccupied || day.hasBookings) {
             // Zeige bestehende Buchung (für belegte Hälften oder allgemein wenn Buchungen vorhanden)
-            handleDayClick(day);
+            console.log('Calling handleDayClick for occupied half or bookings...');
+            handleDayClick(day, timeOfDay);
+        } else {
+            console.log('No action taken - day not clickable');
         }
     };
 
@@ -148,33 +173,117 @@ export default function YearCalendar() {
         console.log('Delete booking:', booking);
     };
 
+    // Filtere Buchungen basierend auf der angeklickten Hälfte
+    const getFilteredBookingsForModal = () => {
+        if (!selectedDay || !selectedHalf) return [];
+        
+        // Wenn es ein voll belegter Tag ist (keine An- oder Abreise), zeige alle Buchungen
+        if (selectedDay.isFullyOccupied || (!selectedDay.isArrivalDay && !selectedDay.isDepartureDay && selectedDay.hasBookings)) {
+            return selectedDay.bookings;
+        }
+        
+        // Nur bei An- oder Abreisetagen filtern
+        return selectedDay.bookings.filter(booking => {
+            const startDate = new Date(booking.start_datum);
+            const endDate = new Date(booking.end_datum);
+            const dayDate = new Date(selectedDay.date);
+            
+            // Vormittag (morning) - zeige nur Abreise-Buchungen
+            if (selectedHalf === 'morning') {
+                return endDate.toDateString() === dayDate.toDateString();
+            }
+            
+            // Nachmittag (afternoon) - zeige nur Anreise-Buchungen
+            if (selectedHalf === 'afternoon') {
+                return startDate.toDateString() === dayDate.toDateString();
+            }
+            
+            return false;
+        });
+    };
+
     const getHalfDayClasses = (half: string, position: 'left' | 'right', day: CalendarDay) => {
         const baseClasses = position === 'left' ? 'absolute top-0 left-0 w-1/2 h-full' : 'absolute top-0 right-0 w-1/2 h-full';
 
-        switch (half) {
-            case 'occupied':
-                // Prüfe ob Buchungen mit Kategorien vorhanden sind
-                if (day.bookings && day.bookings.length > 0) {
-                    // Verwende die erste Buchung mit Kategorie-Farbe, falls vorhanden
-                    const bookingWithCategory = day.bookings.find(booking => booking.user?.category);
-                    if (bookingWithCategory?.user?.category?.color) {
-                        return cn(baseClasses, 'border border-white/20');
+        if (half === 'occupied') {
+            // Bei An-/Abreisetagen: Prüfe die spezifische Buchung für diese Hälfte
+            if (day.isArrivalDay || day.isDepartureDay) {
+                const relevantBooking = day.bookings.find(booking => {
+                    const startDate = new Date(booking.start_datum);
+                    const endDate = new Date(booking.end_datum);
+                    const dayDate = new Date(day.date);
+                    
+                    if (position === 'left') {
+                        return endDate.toDateString() === dayDate.toDateString();
+                    } else {
+                        return startDate.toDateString() === dayDate.toDateString();
                     }
+                });
+                
+                if (relevantBooking?.user?.category?.color) {
+                    return cn(baseClasses, 'border border-white/20');
+                }
+                return cn(baseClasses, 'bg-blue-500'); // Standard blau wenn keine Kategorie
+            } else {
+                // Bei normalen Tagen
+                const bookingWithCategory = day.bookings.find(booking => booking.user?.category);
+                if (bookingWithCategory?.user?.category?.color) {
+                    return cn(baseClasses, 'border border-white/20');
                 }
                 return cn(baseClasses, 'bg-blue-500'); // Standard blau für belegt
-            case 'free':
-            default:
-                return cn(baseClasses, 'bg-transparent'); // Transparent für frei
+            }
         }
+        
+        return cn(baseClasses, 'bg-transparent'); // Transparent für frei
     };
 
     const getHalfDayStyle = (half: string, position: 'left' | 'right', day: CalendarDay) => {
-        if (half === 'occupied' && day.bookings && day.bookings.length > 0) {
-            const bookingWithCategory = day.bookings.find(booking => booking.user?.category);
-            if (bookingWithCategory?.user?.category?.color) {
-                return {
-                    backgroundColor: bookingWithCategory.user.category.color,
-                };
+        if (half === 'occupied') {
+            // Prüfe ob es ein An-/Abreisetag ist
+            if (day.isArrivalDay || day.isDepartureDay) {
+                // Bei An-/Abreisetagen: Finde die spezifische Buchung für diese Hälfte
+                const relevantBooking = day.bookings.find(booking => {
+                    const startDate = new Date(booking.start_datum);
+                    const endDate = new Date(booking.end_datum);
+                    const dayDate = new Date(day.date);
+                    
+                    if (position === 'left') {
+                        // Linke Hälfte = Abreise (vormittags)
+                        return endDate.toDateString() === dayDate.toDateString();
+                    } else {
+                        // Rechte Hälfte = Anreise (nachmittags)
+                        return startDate.toDateString() === dayDate.toDateString();
+                    }
+                });
+                
+                // Debug-Log
+                if (day.date === '2025-08-30' || day.bookings.length > 1) {
+                    console.log('getHalfDayStyle Debug:', {
+                        date: day.date,
+                        position,
+                        half,
+                        isArrivalDay: day.isArrivalDay,
+                        isDepartureDay: day.isDepartureDay,
+                        bookings: day.bookings,
+                        relevantBooking,
+                        hasCategory: relevantBooking?.user?.category,
+                        color: relevantBooking?.user?.category?.color
+                    });
+                }
+                
+                if (relevantBooking?.user?.category?.color) {
+                    return {
+                        backgroundColor: relevantBooking.user.category.color,
+                    };
+                }
+            } else {
+                // Bei normalen belegten Tagen: Verwende die erste Buchung mit Kategorie
+                const bookingWithCategory = day.bookings.find(booking => booking.user?.category);
+                if (bookingWithCategory?.user?.category?.color) {
+                    return {
+                        backgroundColor: bookingWithCategory.user.category.color,
+                    };
+                }
             }
         }
         return {};
@@ -415,8 +524,16 @@ export default function YearCalendar() {
             {/* Booking Details Modal */}
             <BookingDetailsModal
                 isOpen={showBookingModal}
-                onOpenChange={setShowBookingModal}
-                selectedDay={selectedDay}
+                onOpenChange={(open) => {
+                    setShowBookingModal(open);
+                    if (!open) {
+                        setSelectedHalf(null);
+                    }
+                }}
+                selectedDay={selectedDay && selectedHalf ? {
+                    ...selectedDay,
+                    bookings: getFilteredBookingsForModal()
+                } : selectedDay}
                 onEditBooking={(booking: any) => handleEditBooking(booking)}
                 onDeleteBooking={(booking: any) => handleDeleteBooking(booking)}
             />

@@ -64,7 +64,7 @@ export default function BookingFormModal({ isOpen, onClose, initialDate = '', in
             titel: '',
             beschreibung: '',
             start_datum: initialDate,
-            end_datum: '',
+            end_datum: initialDate, // Setze Abreisedatum gleich Anreisedatum
             anreise_zeit: initialTime,
         });
         setErrors({});
@@ -79,7 +79,7 @@ export default function BookingFormModal({ isOpen, onClose, initialDate = '', in
                 titel: '',
                 beschreibung: '',
                 start_datum: initialDate,
-                end_datum: '',
+                end_datum: initialDate, // Setze Abreisedatum gleich Anreisedatum
                 anreise_zeit: initialTime,
             });
         }

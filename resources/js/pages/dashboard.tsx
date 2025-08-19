@@ -4,7 +4,7 @@ import { MiniCalendar } from '@/components/mini-calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Calendar, Clock, Cloud, MapPin, TrendingUp, Users } from 'lucide-react';
+import { Calendar, CheckSquare, Clock, Cloud, MapPin, TrendingUp, Users } from 'lucide-react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { formatGermanNumber, formatGermanDate } from '@/lib/utils';
 
@@ -84,6 +84,12 @@ interface DashboardData {
         monthlyRevenue: number;
     };
     upcomingList?: UpcomingBooking[];
+    todoStats?: {
+        total: number;
+        open: number;
+        completed: number;
+        overdue?: number;
+    };
 }
 
 interface WeatherLocation {
@@ -196,8 +202,39 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
     const [selectedTime, setSelectedTime] = useState<'morning' | 'afternoon'>('afternoon');
 
     // Memoized handlers for better performance
-    const handleDayClick = useCallback((day: CalendarDay) => {
-        console.log('Day clicked:', day); // Debug
+    const [selectedHalf, setSelectedHalf] = useState<'morning' | 'afternoon' | null>(null);
+
+    // Filtere Buchungen basierend auf der angeklickten Hälfte
+    const getFilteredBookingsForModal = useCallback(() => {
+        if (!selectedDay || !selectedHalf) return [];
+        
+        // Wenn es ein voll belegter Tag ist (keine An- oder Abreise), zeige alle Buchungen
+        if (selectedDay.isFullyOccupied || (!selectedDay.isArrivalDay && !selectedDay.isDepartureDay && selectedDay.hasBookings)) {
+            return selectedDay.bookings;
+        }
+        
+        // Nur bei An- oder Abreisetagen filtern
+        return selectedDay.bookings.filter(booking => {
+            const startDate = new Date(booking.start_datum);
+            const endDate = new Date(booking.end_datum);
+            const dayDate = new Date(selectedDay.date);
+            
+            // Vormittag (morning) - zeige nur Abreise-Buchungen
+            if (selectedHalf === 'morning') {
+                return endDate.toDateString() === dayDate.toDateString();
+            }
+            
+            // Nachmittag (afternoon) - zeige nur Anreise-Buchungen
+            if (selectedHalf === 'afternoon') {
+                return startDate.toDateString() === dayDate.toDateString();
+            }
+            
+            return false;
+        });
+    }, [selectedDay, selectedHalf]);
+
+    const handleDayClick = useCallback((day: CalendarDay, event: React.MouseEvent<HTMLButtonElement>, timeOfDay?: 'morning' | 'afternoon') => {
+        console.log('Day clicked:', day, 'timeOfDay:', timeOfDay); // Debug
         console.log('Has bookings:', day.hasBookings); // Debug
         console.log('Bookings:', Array.isArray(day.bookings) ? day.bookings : Object.values(day.bookings || {})); // Debug
 
@@ -213,6 +250,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
             rightHalf: (day as unknown as { rightHalf?: HalfState }).rightHalf ?? 'occupied',
         } as CalendarDay;
         setSelectedDay(normalized);
+        setSelectedHalf(timeOfDay || null);
         setTimeout(() => setShowBookingModal(true), 0);
     }, []);
 
@@ -345,6 +383,29 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                             {statisticsDisplay.occupancy}
                         </CardContent>
                     </Card>
+
+                    <Card className="glass-card h-full">
+                        <CardHeader className="glass-card-header flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="glass-card-title text-sm font-medium">To-Dos</CardTitle>
+                            <CheckSquare className="h-4 w-4 text-white/70" />
+                        </CardHeader>
+                        <CardContent className="glass-card-content">
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/70">Offen:</span>
+                                    <span className="text-sm font-semibold text-white">{dashboardData.todoStats?.open ?? 0}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/70">Überfällig:</span>
+                                    <span className="text-sm font-semibold text-white">{dashboardData.todoStats?.overdue ?? 0}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-white/70">Erledigt:</span>
+                                    <span className="text-sm font-semibold text-white">{dashboardData.todoStats?.completed ?? 0}</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Mini-Kalender und Wetter: je 50% Breite in Reihe 2 */}
@@ -353,7 +414,7 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                         <MiniCalendar
                             currentMonth={dashboardData.currentMonth}
                             calendarData={dashboardData.calendarData}
-                            onDayClick={(day) => handleDayClick(day as any)}
+                            onDayClick={(day, event, timeOfDay) => handleDayClick(day as any, event, timeOfDay)}
                             onPrevMonth={handlePrevMonth}
                             onNextMonth={handleNextMonth}
                             onBookingFormOpen={handleBookingFormOpen}
@@ -459,8 +520,16 @@ export default function Dashboard({ dashboardData, weatherData }: Props) {
                 {/* Booking Details Modal */}
                 <BookingDetailsModal
                     isOpen={showBookingModal}
-                    onOpenChange={setShowBookingModal}
-                    selectedDay={selectedDay}
+                    onOpenChange={(open) => {
+                        setShowBookingModal(open);
+                        if (!open) {
+                            setSelectedHalf(null);
+                        }
+                    }}
+                    selectedDay={selectedDay && selectedHalf ? {
+                        ...selectedDay,
+                        bookings: getFilteredBookingsForModal()
+                    } : selectedDay}
                     onEditBooking={handleEditBooking}
                     onDeleteBooking={handleDeleteBooking}
                 />

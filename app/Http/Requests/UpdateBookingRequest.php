@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Booking;
+use App\Models\BookingStatus;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBookingRequest extends FormRequest
@@ -50,5 +53,30 @@ class UpdateBookingRequest extends FormRequest
             'anreise_zeit.required' => 'Die Anreisezeit ist erforderlich.',
             'anreise_zeit.in' => 'Die Anreisezeit muss entweder "morning" oder "afternoon" sein.',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $startDate = Carbon::parse($this->start_datum);
+            $endDate = Carbon::parse($this->end_datum);
+
+            // Eigene Buchung beim Update ausschließen
+            $bookingId = $this->route('booking')?->id;
+
+            // Echt-Überschneidung (Grenzwerte erlaubt)
+            $overlappingBookings = Booking::query()
+                ->where('id', '!=', $bookingId)
+                ->whereIn('status', [BookingStatus::RESERVIERT->value, BookingStatus::GEBUCHT->value])
+                ->where(function ($q) use ($startDate, $endDate) {
+                    $q->where('start_datum', '<', $endDate)
+                      ->where('end_datum', '>', $startDate);
+                })
+                ->exists();
+
+            if ($overlappingBookings) {
+                $validator->errors()->add('start_datum', 'Für diesen Zeitraum liegt bereits eine Buchung vor. Überschneidungen sind nicht erlaubt.');
+            }
+        });
     }
 }
